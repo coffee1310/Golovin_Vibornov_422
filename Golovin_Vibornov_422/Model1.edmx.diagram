@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="fa5c6a359e5b40f18cbaa2a519325f5c" Name="Diagram1">
+        <EntityTypeShape EntityType="AdsDatabaseModel.ads_data" Width="1.5" PointX="3" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.category" Width="1.5" PointX="0.75" PointY="6.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.city" Width="1.5" PointX="0.75" PointY="9" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.profit" Width="1.5" PointX="3" PointY="8.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.status" Width="1.5" PointX="0.75" PointY="11.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.sysdiagrams" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.type" Width="1.5" PointX="0.75" PointY="13.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="AdsDatabaseModel.user" Width="1.5" PointX="0.75" PointY="3.25" IsExpanded="true" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__ad_sta__628FA481" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__ad_typ__619B8048" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__catego__60A75C0F" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__city_i__5FB337D6" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__user_i__5EBF139D" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__profit__user_id__46E78A0C" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
