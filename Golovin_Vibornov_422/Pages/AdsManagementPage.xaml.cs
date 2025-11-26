@@ -5,12 +5,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.IO;
 
 namespace Golovin_Vibornov_422.Pages
 {
-    /// <summary>
-    /// Логика взаимодействия для AdsManagementPage.xaml
-    /// </summary>
     public partial class AdsManagementPage : Page
     {
         private AdsDatabaseEntities _context;
@@ -38,13 +38,11 @@ namespace Golovin_Vibornov_422.Pages
 
         private void LoadUserInfo()
         {
-            // Отображаем информацию о текущем пользователе
             lblUserInfo.Text = $"Пользователь: {AuthService.CurrentUser.user_login}";
         }
 
         private async void LoadAds()
         {
-            // Защита от множественных одновременных загрузок
             if (_isLoading) return;
 
             _isLoading = true;
@@ -52,22 +50,20 @@ namespace Golovin_Vibornov_422.Pages
 
             try
             {
-                // Загружаем объявления без Include
+                // Загружаем объявления с Include для связанных данных
                 var userAds = await _context.ads_data
+                    .Include(a => a.city)
+                    .Include(a => a.category1)
+                    .Include(a => a.type)
+                    .Include(a => a.status)
                     .Where(a => a.user_id == AuthService.CurrentUser.id)
                     .OrderByDescending(a => a.ad_post_date)
                     .ToListAsync();
 
-                // Загружаем справочники отдельно
-                var cities = await _context.city.ToListAsync();
-                var categories = await _context.category.ToListAsync();
-                var types = await _context.type.ToListAsync();
-                var statuses = await _context.status.ToListAsync();
-
-                // Создаем временный список для отображения с связанными данными
-                var adsWithReferences = userAds.Select(ad => new
+                // Создаем список для отображения с дополнительными свойствами
+                var adsWithDetails = userAds.Select(ad => new
                 {
-                    // Основные свойства объявления
+                    // Основные свойства
                     ad.id,
                     ad.ad_title,
                     ad.ad_description,
@@ -78,19 +74,27 @@ namespace Golovin_Vibornov_422.Pages
                     ad.ad_status_id,
                     ad.price,
                     ad.user_id,
+                    ad.ad_image_path,
 
                     // Связанные данные
-                    City = cities.FirstOrDefault(c => c.id == ad.city_id),
-                    Category = categories.FirstOrDefault(c => c.id == ad.category),
-                    AdType = types.FirstOrDefault(t => t.id == ad.ad_type_id),
-                    AdStatus = statuses.FirstOrDefault(s => s.id == ad.ad_status_id)
+                    City = ad.city,
+                    Category = ad.category1,
+                    AdType = ad.type,
+                    AdStatus = ad.status,
+
+                    // Дополнительные свойства для UI
+                    HasImage = !string.IsNullOrEmpty(ad.ad_image_path),
+                    ImageSource = LoadImageFromPath(ad.ad_image_path),
+                    StatusColor = ad.status.status1 == "Активно" ?
+                        new SolidColorBrush(Color.FromRgb(76, 175, 80)) :
+                        new SolidColorBrush(Color.FromRgb(158, 158, 158))
                 }).ToList();
 
-                // Обновляем UI в основном потоке
+                // Обновляем UI
                 Dispatcher.Invoke(() =>
                 {
-                    dgAds.ItemsSource = adsWithReferences;
-                    UpdateUIState(adsWithReferences.Count);
+                    itemsAds.ItemsSource = adsWithDetails;
+                    UpdateUIState(adsWithDetails.Count);
                     lblStatus.Text = "Данные успешно загружены";
                 });
             }
@@ -109,31 +113,168 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
+        private ImageSource LoadImageFromPath(string imagePath)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+                return null;
+
+            try
+            {
+                string fullPath = GetFullImagePath(imagePath);
+
+                if (File.Exists(fullPath))
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    return bitmap;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки изображения {imagePath}: {ex.Message}");
+                return null;
+            }
+        }
+
+        private string GetFullImagePath(string imagePath)
+        {
+            if (Path.IsPathRooted(imagePath))
+                return imagePath;
+
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string cleanPath = imagePath.TrimStart('\\', '/');
+            string fullPath = Path.Combine(baseDirectory, "Images", "ads", cleanPath);
+
+            return fullPath;
+        }
+
         private void UpdateUIState(int adsCount)
         {
             lblCount.Text = $"Объявлений: {adsCount}";
 
             // Показываем/скрываем сообщение при отсутствии данных
             emptyStatePanel.Visibility = adsCount == 0 ? Visibility.Visible : Visibility.Collapsed;
-            dgAds.Visibility = adsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+            itemsAds.Visibility = adsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void ShowLoadingState(string message)
         {
             loadingPanel.Visibility = Visibility.Visible;
             lblLoading.Text = message;
-            dgAds.IsEnabled = false;
+            itemsAds.IsEnabled = false;
         }
 
         private void HideLoadingState()
         {
             loadingPanel.Visibility = Visibility.Collapsed;
-            dgAds.IsEnabled = true;
+            itemsAds.IsEnabled = true;
         }
 
+        // Обработчики кликов по карточкам
+        private void AdCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2) // Двойной клик
+            {
+                var border = sender as Border;
+                if (border != null)
+                {
+                    EditAdFromCard(border.DataContext);
+                }
+            }
+        }
+
+        private void EditCardButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button?.Tag != null)
+            {
+                EditAdById((int)button.Tag);
+            }
+        }
+
+        private void DeleteCardButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button?.Tag != null)
+            {
+                DeleteAdById((int)button.Tag);
+            }
+        }
+
+        private void EditAdFromCard(object dataContext)
+        {
+            try
+            {
+                var idProperty = dataContext.GetType().GetProperty("id");
+                if (idProperty != null)
+                {
+                    int adId = (int)idProperty.GetValue(dataContext);
+                    EditAdById(adId);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Не удалось открыть объявление для редактирования: {ex.Message}", "Ошибка");
+            }
+        }
+
+        private void EditAdById(int adId)
+        {
+            try
+            {
+                var fullAd = _context.ads_data.Find(adId);
+                if (fullAd != null)
+                {
+                    var editPage = new AdEditPage(fullAd);
+                    editPage.AdSaved += OnAdSaved;
+                    NavigationService.Navigate(editPage);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Не удалось открыть объявление для редактирования: {ex.Message}", "Ошибка");
+            }
+        }
+
+        private void DeleteAdById(int adId)
+        {
+            try
+            {
+                var fullAd = _context.ads_data.Find(adId);
+                if (fullAd != null)
+                {
+                    // Подтверждение удаления
+                    var result = MessageBox.Show(
+                        $"Вы уверены, что хотите удалить объявление?\n\n" +
+                        $"Заголовок: {fullAd.ad_title}\n" +
+                        $"Дата: {fullAd.ad_post_date:dd.MM.yyyy}\n" +
+                        $"Цена: {fullAd.price}₽\n\n" +
+                        $"Это действие нельзя отменить.",
+                        "Подтверждение удаления",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning,
+                        MessageBoxResult.No);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        PerformDeleteAd(fullAd);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Ошибка при удалении: {ex.Message}", "Ошибка");
+            }
+        }
+
+        // Существующие методы (без изменений)
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            // Переход на страницу создания нового объявления
             try
             {
                 var editPage = new AdEditPage();
@@ -146,105 +287,6 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
-        private void EditButton_Click(object sender, RoutedEventArgs e)
-        {
-            EditSelectedAd();
-        }
-
-        private void dgAds_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            // Редактирование при двойном клике по объявлению
-            EditSelectedAd();
-        }
-
-        private void EditSelectedAd()
-        {
-            var selectedItem = dgAds.SelectedItem;
-            if (selectedItem != null)
-            {
-                try
-                {
-                    // Получаем ID выбранного объявления из анонимного типа
-                    var idProperty = selectedItem.GetType().GetProperty("id");
-                    if (idProperty != null)
-                    {
-                        int adId = (int)idProperty.GetValue(selectedItem);
-
-                        // Находим полное объявление в контексте
-                        var fullAd = _context.ads_data.Find(adId);
-                        if (fullAd != null)
-                        {
-                            // Переход на страницу редактирования выбранного объявления
-                            var editPage = new AdEditPage(fullAd);
-                            editPage.AdSaved += OnAdSaved;
-                            NavigationService.Navigate(editPage);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ShowErrorMessage($"Не удалось открыть объявление для редактирования: {ex.Message}", "Ошибка");
-                }
-            }
-            else
-            {
-                ShowInfoMessage("Пожалуйста, выберите объявление для редактирования", "Выбор объявления");
-            }
-        }
-
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedItem = dgAds.SelectedItem;
-            if (selectedItem != null)
-            {
-                try
-                {
-                    // Получаем данные выбранного объявления из анонимного типа
-                    var idProperty = selectedItem.GetType().GetProperty("id");
-                    var titleProperty = selectedItem.GetType().GetProperty("ad_title");
-                    var dateProperty = selectedItem.GetType().GetProperty("ad_post_date");
-                    var priceProperty = selectedItem.GetType().GetProperty("price");
-
-                    if (idProperty != null && titleProperty != null && dateProperty != null && priceProperty != null)
-                    {
-                        string title = (string)titleProperty.GetValue(selectedItem);
-                        DateTime date = (DateTime)dateProperty.GetValue(selectedItem);
-                        decimal price = (decimal)priceProperty.GetValue(selectedItem);
-
-                        // Подтверждение удаления с подробной информацией
-                        var result = MessageBox.Show(
-                            $"Вы уверены, что хотите удалить объявление?\n\n" +
-                            $"Заголовок: {title}\n" +
-                            $"Дата: {date:dd.MM.yyyy}\n" +
-                            $"Цена: {price:C}\n\n" +
-                            $"Это действие нельзя отменить.",
-                            "Подтверждение удаления",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Warning,
-                            MessageBoxResult.No);
-
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            int adId = (int)idProperty.GetValue(selectedItem);
-                            var fullAd = _context.ads_data.Find(adId);
-                            if (fullAd != null)
-                            {
-                                PerformDeleteAd(fullAd);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ShowErrorMessage($"Ошибка при удалении: {ex.Message}", "Ошибка");
-                }
-            }
-            else
-            {
-                ShowInfoMessage("Пожалуйста, выберите объявление для удаления", "Выбор объявления");
-            }
-        }
-
         private async void PerformDeleteAd(ads_data ad)
         {
             ShowLoadingState("Удаление объявления...");
@@ -254,7 +296,7 @@ namespace Golovin_Vibornov_422.Pages
                 _context.ads_data.Remove(ad);
                 await _context.SaveChangesAsync();
 
-                LoadAds(); // Обновляем список
+                LoadAds();
                 ShowSuccessMessage("Объявление успешно удалено");
             }
             catch (Exception ex)
@@ -295,20 +337,13 @@ namespace Golovin_Vibornov_422.Pages
             }
             else
             {
-                // Если нельзя вернуться назад, выходим из системы
                 LogoutButton_Click(sender, e);
             }
         }
 
         private void OnAdSaved()
         {
-            // Обновляем данные после сохранения изменений
             LoadAds();
-        }
-
-        private void dgAds_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Можно добавить дополнительную логику при изменении выбора
         }
 
         // Вспомогательные методы для показа сообщений
@@ -328,11 +363,22 @@ namespace Golovin_Vibornov_422.Pages
             lblStatus.Text = message;
         }
 
-        // Обработчик выхода со страницы
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            // Очистка ресурсов при уходе со страницы
             _context?.Dispose();
+        }
+
+        private void AllAdsButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var allAdsPage = new MainPage();
+                NavigationService.Navigate(allAdsPage);
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Не удалось открыть страницу всех объявлений: {ex.Message}", "Ошибка");
+            }
         }
     }
 }

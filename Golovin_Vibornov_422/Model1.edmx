@@ -19,6 +19,7 @@
           <Property Name="ad_type_id" Type="int" Nullable="false" />
           <Property Name="ad_status_id" Type="int" Nullable="false" />
           <Property Name="price" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="ad_image_path" Type="nvarchar" MaxLength="500" />
         </EntityType>
         <EntityType Name="category">
           <Key>
@@ -198,6 +199,7 @@
           <Property Name="ad_type_id" Type="Int32" Nullable="false" />
           <Property Name="ad_status_id" Type="Int32" Nullable="false" />
           <Property Name="price" Type="Decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="ad_image_path" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="status" Relationship="Self.FK__ads_data__ad_sta__628FA481" FromRole="ads_data" ToRole="status" />
           <NavigationProperty Name="type" Relationship="Self.FK__ads_data__ad_typ__619B8048" FromRole="ads_data" ToRole="type" />
           <NavigationProperty Name="category1" Relationship="Self.FK__ads_data__catego__60A75C0F" FromRole="ads_data" ToRole="category" />
@@ -336,7 +338,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityContainer Name="AdsDatabaseEntities" annotation:LazyLoadingEnabled="true">
+        <EntityContainer Name="AdsDatabaseEntities1" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="ads_data" EntityType="Self.ads_data" />
           <EntitySet Name="category" EntityType="Self.category" />
           <EntitySet Name="city" EntityType="Self.city" />
@@ -375,7 +377,7 @@
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="Хранилище AdsDatabaseModelContainer" CdmEntityContainer="AdsDatabaseEntities">
+        <EntityContainerMapping StorageEntityContainer="Хранилище AdsDatabaseModelContainer" CdmEntityContainer="AdsDatabaseEntities1">
           <EntitySetMapping Name="ads_data">
             <EntityTypeMapping TypeName="AdsDatabaseModel.ads_data">
               <MappingFragment StoreEntitySet="ads_data">
@@ -389,6 +391,7 @@
                 <ScalarProperty Name="ad_type_id" ColumnName="ad_type_id" />
                 <ScalarProperty Name="ad_status_id" ColumnName="ad_status_id" />
                 <ScalarProperty Name="price" ColumnName="price" />
+                <ScalarProperty Name="ad_image_path" ColumnName="ad_image_path" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

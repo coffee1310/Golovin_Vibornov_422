@@ -29,7 +29,7 @@ namespace Golovin_Vibornov_422
 
         private void NavigateToLoginPage()
         {
-            services.NavigationService.NavigateTo(new LoginPage());
+            services.NavigationService.NavigateTo(new MainPage());
         }
 
         private void OnUserLoggedIn(user user)

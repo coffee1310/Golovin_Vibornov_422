@@ -16,7 +16,7 @@ namespace Golovin_Vibornov_422
     public partial class AdsDatabaseEntities : DbContext
     {
         public AdsDatabaseEntities()
-            : base("name=AdsDatabaseEntities")
+            : base("name=AdsDatabaseEntities1")
         {
         }
     

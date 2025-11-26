@@ -5,11 +5,12 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Golovin_Vibornov_422.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="AdsManagementPage">
+      d:DesignHeight="700" d:DesignWidth="1000"
+      Title="Управление объявлениями">
 
     <Grid Background="White">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -26,6 +27,8 @@
 
                 <!-- Кнопка назад -->
                 <Button Grid.Column="0" Content="← Назад" Click="BackButton_Click" 
+                        Background="Transparent" Foreground="White" BorderThickness="0"
+                        Padding="10,5" Cursor="Hand" FontSize="12"
                         ToolTip="Вернуться на предыдущую страницу"/>
 
                 <!-- Заголовок страницы -->
@@ -39,31 +42,36 @@
                               Margin="0,0,15,0" VerticalAlignment="Center"
                               ToolTip="Текущий пользователь системы"/>
                     <Button Content="Выйти" Click="LogoutButton_Click" 
+                            Background="Transparent" Foreground="White" BorderThickness="0"
+                            Padding="10,5" Cursor="Hand" FontSize="12"
                             ToolTip="Выйти из системы"/>
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- Панель инструментов -->
-        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"
-                Margin="0,65,0,0" Padding="15,10">
+        <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"
+                Padding="15,10">
             <StackPanel Orientation="Horizontal">
                 <Button Content="➕ Добавить объявление" Click="AddButton_Click" 
+                        Background="#0078D4" Foreground="White" BorderThickness="0"
+                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
                         ToolTip="Создать новое объявление"/>
-                <Button Content="✏️ Редактировать" Click="EditButton_Click" 
-                        ToolTip="Редактировать выбранное объявление" 
-                        Margin="10,0,0,0"/>
-                <Button Content="🗑️ Удалить" Click="DeleteButton_Click" 
-                        ToolTip="Удалить выбранное объявление" 
+                <Button Content="🌐 Все объявления" Click="AllAdsButton_Click" 
+                        Background="#666666" Foreground="White" BorderThickness="0"
+                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
+                        ToolTip="Просмотр всех объявлений системы" 
                         Margin="10,0,0,0"/>
                 <Button Content="🔄 Обновить список" Click="RefreshButton_Click" 
+                        Background="#107C10" Foreground="White" BorderThickness="0"
+                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
                         ToolTip="Обновить данные объявлений" 
                         Margin="10,0,0,0"/>
             </StackPanel>
         </Border>
 
-        <!-- Сетка с объявлениями -->
-        <Border Grid.Row="1" Margin="15">
+        <!-- Сетка с объявлениями в виде карточек -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="15">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -81,46 +89,134 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Таблица объявлений -->
-                <DataGrid Grid.Row="1" x:Name="dgAds" AutoGenerateColumns="False" 
-          IsReadOnly="True" SelectionMode="Single"
-          BorderThickness="1" BorderBrush="#E0E0E0"
-          HeadersVisibility="Column" RowHeight="35" 
-          FontSize="12" SelectionChanged="dgAds_SelectionChanged"
-          MouseDoubleClick="dgAds_MouseDoubleClick"
-          ToolTip="Дважды щелкните для редактирования объявления">
+                <!-- Карточки объявлений -->
+                <ItemsControl Grid.Row="1" x:Name="itemsAds">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
 
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" Binding="{Binding id}" Width="50"/>
-                        <DataGridTextColumn Header="Заголовок" Binding="{Binding ad_title}" Width="200"/>
-                        <DataGridTextColumn Header="Описание" Binding="{Binding ad_description}" Width="250"/>
-                        <DataGridTextColumn Header="Дата" Binding="{Binding ad_post_date, StringFormat=dd.MM.yyyy}" Width="90"/>
-                        <DataGridTextColumn Header="Город" Binding="{Binding City.city1}" Width="100"/>
-                        <DataGridTextColumn Header="Категория" Binding="{Binding Category.name}" Width="110"/>
-                        <DataGridTextColumn Header="Тип" Binding="{Binding AdType.type}" Width="90"/>
-                        <DataGridTextColumn Header="Статус" Binding="{Binding AdStatus.status}" Width="90">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding AdStatus.status}" Value="Активно">
-                                            <Setter Property="Foreground" Value="Green"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding AdStatus.status}" Value="Завершено">
-                                            <Setter Property="Foreground" Value="Gray"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Цена" Binding="{Binding price, StringFormat=C}" Width="90"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
+                                    CornerRadius="8" Margin="8" Padding="0" 
+                                    Width="300" Height="420"
+                                    Cursor="Hand"
+                                    MouseLeftButtonDown="AdCard_MouseLeftButtonDown">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="180"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Изображение объявления -->
+                                    <Border Grid.Row="0" Background="#F5F5F5" 
+                                            CornerRadius="8,8,0,0">
+                                        <Image Stretch="UniformToFill" 
+                                               ToolTip="Изображение объявления">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Setter Property="Source" Value="/Images/no-image.jpg"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasImage}" Value="True">
+                                                            <Setter Property="Source" Value="{Binding ImageSource}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                    </Border>
+
+                                    <!-- Заголовок -->
+                                    <TextBlock Grid.Row="1" Text="{Binding ad_title}" 
+                                              FontWeight="Bold" FontSize="14" 
+                                              Margin="12,10,12,5" 
+                                              TextWrapping="Wrap" 
+                                              MaxHeight="40"
+                                              TextTrimming="CharacterEllipsis"/>
+
+                                    <!-- Описание -->
+                                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" 
+                                                 Margin="12,0,12,5">
+                                        <TextBlock Text="{Binding ad_description}" 
+                                                  FontSize="12" TextWrapping="Wrap"
+                                                  Foreground="#666666"
+                                                  MaxHeight="60"/>
+                                    </ScrollViewer>
+
+                                    <!-- Информация -->
+                                    <Border Grid.Row="3" Background="#F9F9F9" 
+                                           Margin="0,5,0,0" Padding="12,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Orientation="Vertical">
+                                                <TextBlock Text="{Binding City.city1}" 
+                                                          FontSize="11" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding AdType.type1}" 
+                                                          FontSize="10" Foreground="#666666"/>
+                                                <TextBlock Text="{Binding Category.name}" 
+                                                          FontSize="10" Foreground="#666666"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" Orientation="Vertical" 
+                                                       HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding price, StringFormat={}{0}₽}" 
+                                                          FontSize="14" FontWeight="Bold" 
+                                                          Foreground="#0078D4"/>
+                                                <TextBlock Text="{Binding ad_post_date, StringFormat=dd.MM.yyyy}" 
+                                                          FontSize="9" Foreground="#999999"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Статус -->
+                                    <Border Grid.Row="4" Background="{Binding StatusColor}" 
+                                           Padding="5,2">
+                                        <TextBlock Text="{Binding AdStatus.status1}" 
+                                                  FontSize="10" FontWeight="Bold" 
+                                                  Foreground="White" 
+                                                  HorizontalAlignment="Center"/>
+                                    </Border>
+
+                                    <!-- Кнопки действий -->
+                                    <Border Grid.Row="5" Background="#F5F5F5" 
+                                           CornerRadius="0,0,8,8" Padding="8">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="✏️ Редактировать" 
+                                                    Tag="{Binding id}"
+                                                    Click="EditCardButton_Click"
+                                                    Background="#107C10" Foreground="White"
+                                                    Padding="8,4" BorderThickness="0" Margin="0,0,5,0"
+                                                    FontSize="10" FontWeight="SemiBold" Cursor="Hand"
+                                                    ToolTip="Редактировать объявление"/>
+                                            <Button Content="🗑️ Удалить" 
+                                                    Tag="{Binding id}"
+                                                    Click="DeleteCardButton_Click"
+                                                    Background="#D13438" Foreground="White"
+                                                    Padding="8,4" BorderThickness="0" Margin="5,0,0,0"
+                                                    FontSize="10" FontWeight="SemiBold" Cursor="Hand"
+                                                    ToolTip="Удалить объявление"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
                 <!-- Сообщение при отсутствии данных -->
                 <Border x:Name="emptyStatePanel" Grid.Row="1" Background="#F9F9F9" 
                        Visibility="Collapsed" HorizontalAlignment="Center" 
-                       VerticalAlignment="Center" Padding="30">
+                       VerticalAlignment="Center" Padding="30" CornerRadius="8">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <TextBlock Text="📝" FontSize="48" HorizontalAlignment="Center" 
                                   Margin="0,0,0,15"/>
@@ -129,14 +225,20 @@
                                   Margin="0,0,0,5"/>
                         <TextBlock Text="Создайте первое объявление, нажав на кнопку 'Добавить объявление'" 
                                   FontSize="12" Foreground="#666666" 
-                                  TextAlignment="Center" HorizontalAlignment="Center"/>
+                                  TextAlignment="Center" HorizontalAlignment="Center"
+                                  Margin="0,0,0,15"/>
+                        <Button Content="➕ Создать первое объявление" 
+                                Click="AddButton_Click"
+                                Background="#0078D4" Foreground="White"
+                                Padding="15,8" BorderThickness="0" 
+                                FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
                     </StackPanel>
                 </Border>
             </Grid>
-        </Border>
+        </ScrollViewer>
 
         <!-- Статус бар -->
-        <StatusBar Grid.Row="2" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+        <StatusBar Grid.Row="3" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
             <StatusBarItem>
                 <TextBlock x:Name="lblStatus" Text="Готово" FontSize="11" Foreground="#333333"/>
             </StatusBarItem>
