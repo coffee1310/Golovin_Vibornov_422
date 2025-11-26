@@ -22,6 +22,18 @@ namespace Golovin_Vibornov_422.Pages
             InitializePage();
         }
 
+        private void CompletedAdsButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var completedPage = new CompletedAdsPage();
+                NavigationService.Navigate(completedPage);
+            }
+            catch (Exception ex)
+            {
+                ShowErrorMessage($"Не удалось открыть страницу завершенных объявлений: {ex.Message}", "Ошибка");
+            }
+        }
         private void InitializePage()
         {
             try

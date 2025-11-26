@@ -97,6 +97,9 @@
     <Compile Include="Pages\AdsManagementPage.xaml.cs">
       <DependentUpon>AdsManagementPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\CompletedAdsPage.xaml.cs">
+      <DependentUpon>CompletedAdsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\LoginPage.xaml.cs">
       <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>
@@ -137,6 +140,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\AdsManagementPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\CompletedAdsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -190,6 +197,8 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\Лого.png" />
+    <Resource Include="Images\Иконка.ico" />
     <Resource Include="Images\ads\5276173083700039790.jpg" />
     <Content Include="Model1.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -1,4 +1,4 @@
-﻿<Page x:Class="Golovin_Vibornov_422.Pages.AdsManagementPage"
+﻿<Page x:Class="Golovin_Vibornov_422.Pages.CompletedAdsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:Golovin_Vibornov_422.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1000"
-      Title="Управление объявлениями">
+      Title="Завершенные объявления">
 
     <Grid Background="White">
         <Grid.RowDefinitions>
@@ -29,18 +29,15 @@
                         Padding="10,5" Cursor="Hand" FontSize="12"
                         ToolTip="Вернуться на предыдущую страницу"/>
 
-                <TextBlock Grid.Column="1" Text="Управление объявлениями" 
+                <TextBlock Grid.Column="1" Text="Завершенные объявления" 
                           FontSize="20" FontWeight="Bold" Foreground="White"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="lblUserInfo" Foreground="White" FontSize="12" 
-                              Margin="0,0,15,0" VerticalAlignment="Center"
-                              ToolTip="Текущий пользователь системы"/>
-                    <Button Content="Выйти" Click="LogoutButton_Click" 
-                            Background="Transparent" Foreground="White" BorderThickness="0"
-                            Padding="10,5" Cursor="Hand" FontSize="12"
-                            ToolTip="Выйти из системы"/>
+                    <TextBlock Text="💰" FontSize="16" Foreground="White" 
+                              VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock x:Name="lblTotalProfit" Text="Общая прибыль: 0₽" FontSize="12" Foreground="White" 
+                              VerticalAlignment="Center" FontWeight="SemiBold"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -48,26 +45,15 @@
         <Border Grid.Row="1" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"
                 Padding="15,10">
             <StackPanel Orientation="Horizontal">
-                <Button Content="➕ Добавить объявление" Click="AddButton_Click" 
+                <Button Content="🔄 Обновить" Click="RefreshButton_Click" 
+                        Background="#28a745" Foreground="White" BorderThickness="0"
+                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
+                        ToolTip="Обновить данные"/>
+                <Button Content="📊 Управление объявлениями" Click="ManageAdsButton_Click" 
                         Background="#0078D4" Foreground="White" BorderThickness="0"
                         Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
-                        ToolTip="Создать новое объявление"/>
-                <Button Content="🌐 Все объявления" Click="AllAdsButton_Click" 
-                        Background="#666666" Foreground="White" BorderThickness="0"
-                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
-                        ToolTip="Просмотр всех объявлений системы" 
-                        Margin="10,0,0,0"/>
-                <Button Content="🔄 Обновить список" Click="RefreshButton_Click" 
-                        Background="#107C10" Foreground="White" BorderThickness="0"
-                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
-                        ToolTip="Обновить данные объявлений" 
-                        Margin="10,0,0,0"/>
-
-                <Button Content="✅ Завершенные" Click="CompletedAdsButton_Click" 
-                    Background="#28a745" Foreground="White" BorderThickness="0"
-                    Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
-                    Margin="10,0,0,0"
-                    ToolTip="Просмотр завершенных объявлений и прибыли"/>
+                        Margin="10,0,0,0"
+                        ToolTip="Перейти к управлению объявлениями"/>
             </StackPanel>
         </Border>
 
@@ -88,7 +74,7 @@
                     </StackPanel>
                 </Border>
 
-                <ItemsControl Grid.Row="1" x:Name="itemsAds">
+                <ItemsControl Grid.Row="1" x:Name="itemsCompletedAds">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal"/>
@@ -99,9 +85,7 @@
                         <DataTemplate>
                             <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
                                     CornerRadius="8" Margin="8" Padding="0" 
-                                    Width="300" Height="420"
-                                    Cursor="Hand"
-                                    MouseLeftButtonDown="AdCard_MouseLeftButtonDown">
+                                    Width="320" Height="420">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="180"/>
@@ -172,32 +156,23 @@
                                         </Grid>
                                     </Border>
 
-                                    <Border Grid.Row="4" Background="{Binding StatusColor}" 
-                                           Padding="5,2">
+                                    <Border Grid.Row="4" Background="#E8F5E8" 
+                                           Padding="8,5">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="💰" FontSize="12" Margin="0,0,5,0"/>
+                                            <TextBlock Text="Полученная прибыль:" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding ProfitAmount, StringFormat={}{0}₽}" 
+                                                      FontSize="12" FontWeight="Bold" Foreground="#28a745"
+                                                      Margin="5,0,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Row="5" Background="#28a745" 
+                                           CornerRadius="0,0,8,8" Padding="5,2">
                                         <TextBlock Text="{Binding AdStatus.status1}" 
                                                   FontSize="10" FontWeight="Bold" 
                                                   Foreground="White" 
                                                   HorizontalAlignment="Center"/>
-                                    </Border>
-
-                                    <Border Grid.Row="5" Background="#F5F5F5" 
-                                           CornerRadius="0,0,8,8" Padding="8">
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button Content="✏️ Редактировать" 
-                                                    Tag="{Binding id}"
-                                                    Click="EditCardButton_Click"
-                                                    Background="#107C10" Foreground="White"
-                                                    Padding="8,4" BorderThickness="0" Margin="0,0,5,0"
-                                                    FontSize="10" FontWeight="SemiBold" Cursor="Hand"
-                                                    ToolTip="Редактировать объявление"/>
-                                            <Button Content="🗑️ Удалить" 
-                                                    Tag="{Binding id}"
-                                                    Click="DeleteCardButton_Click"
-                                                    Background="#D13438" Foreground="White"
-                                                    Padding="8,4" BorderThickness="0" Margin="5,0,0,0"
-                                                    FontSize="10" FontWeight="SemiBold" Cursor="Hand"
-                                                    ToolTip="Удалить объявление"/>
-                                        </StackPanel>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -209,20 +184,15 @@
                        Visibility="Collapsed" HorizontalAlignment="Center" 
                        VerticalAlignment="Center" Padding="30" CornerRadius="8">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
-                        <TextBlock Text="📝" FontSize="48" HorizontalAlignment="Center" 
+                        <TextBlock Text="✅" FontSize="48" HorizontalAlignment="Center" 
                                   Margin="0,0,0,15"/>
-                        <TextBlock Text="У вас пока нет объявлений" FontSize="16" 
+                        <TextBlock Text="У вас пока нет завершенных объявлений" FontSize="16" 
                                   FontWeight="SemiBold" HorizontalAlignment="Center"
                                   Margin="0,0,0,5"/>
-                        <TextBlock Text="Создайте первое объявление, нажав на кнопку 'Добавить объявление'" 
+                        <TextBlock Text="Завершенные объявления появятся здесь после завершения сделок" 
                                   FontSize="12" Foreground="#666666" 
                                   TextAlignment="Center" HorizontalAlignment="Center"
                                   Margin="0,0,0,15"/>
-                        <Button Content="➕ Создать первое объявление" 
-                                Click="AddButton_Click"
-                                Background="#0078D4" Foreground="White"
-                                Padding="15,8" BorderThickness="0" 
-                                FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -234,7 +204,11 @@
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock x:Name="lblCount" Text="Объявлений: 0" FontSize="11" Foreground="#666666"/>
+                <TextBlock x:Name="lblCount" Text="Завершенных объявлений: 0" FontSize="11" Foreground="#666666"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="lblProfitInfo" Text="Общая прибыль: 0₽" FontSize="11" Foreground="#28a745" FontWeight="SemiBold"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

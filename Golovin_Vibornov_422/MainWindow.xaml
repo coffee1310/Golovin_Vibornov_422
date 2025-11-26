@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Golovin_Vibornov_422"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Icon="/Images/Иконка.ico"
+         Height="450" Width="800">
     <Grid>
         <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
     </Grid>

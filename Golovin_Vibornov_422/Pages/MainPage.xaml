@@ -29,8 +29,9 @@
                 <TextBlock Grid.Column="1" Text="Все объявления" 
                           FontSize="20" FontWeight="Bold" Foreground="White"
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Image Source="/Images/Лого.png" Width="30" Grid.Column="1" Margin="465,0,10,0"></Image>
+
                     <TextBlock Text="🌐" FontSize="16" Foreground="White" 
                               VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBlock Text="Публичный доступ" FontSize="12" Foreground="White" 
