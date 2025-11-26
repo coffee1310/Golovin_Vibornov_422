@@ -88,7 +88,6 @@ namespace Golovin_Vibornov_422.Pages
                     .Include(a => a.type)
                     .Include(a => a.status)
                     .Include(a => a.user)
-                    .Where(a => a.status.status1 == "Активно")
                     .OrderByDescending(a => a.ad_post_date)
                     .ToListAsync();
 
