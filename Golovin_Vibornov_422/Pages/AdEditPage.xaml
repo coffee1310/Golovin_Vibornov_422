@@ -9,7 +9,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Шапка с навигацией -->
         <Border Grid.Row="0" Background="#0078D4" Padding="15">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -28,10 +27,11 @@
             </Grid>
         </Border>
 
-        <!-- Основная форма -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="25">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -50,108 +50,142 @@
                     <ColumnDefinition Width="20"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Заголовок -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Заголовок:" 
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Изображение:" 
+                          Margin="0,0,15,10" VerticalAlignment="Top" 
+                          FontWeight="SemiBold" Foreground="#333333"/>
+                <Border Grid.Row="0" Grid.Column="1" 
+                       Background="#F8F9FA" BorderBrush="#DEE2E6" BorderThickness="1"
+                       Padding="15" Margin="0,0,0,15" CornerRadius="4">
+                    <StackPanel Orientation="Vertical">
+                        <Border BorderBrush="#CED4DA" BorderThickness="1" 
+                               Background="White" CornerRadius="4"
+                               HorizontalAlignment="Left" Margin="0,0,0,10">
+                            <Image x:Name="imgPreview" Width="200" Height="150" 
+                                  Stretch="Uniform"
+                                  Source="/Images/no-image.jpg">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Source" Value="/Images/no-image.jpg"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=imgPreview, Path=Source}" Value="{x:Null}">
+                                                <Setter Property="Source" Value="/Images/no-image.jpg"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="📁 Выбрать фото" Click="SelectImageButton_Click"
+                                    Background="#0078D4" Foreground="White" BorderThickness="0"
+                                    Padding="12,6" FontSize="12" FontWeight="SemiBold" Cursor="Hand"
+                                    ToolTip="Выбрать изображение для объявления"/>
+                            <Button Content="🗑️ Удалить" Click="RemoveImageButton_Click"
+                                    Background="#6C757D" Foreground="White" BorderThickness="0"
+                                    Padding="12,6" FontSize="12" FontWeight="SemiBold" Cursor="Hand"
+                                    Margin="10,0,0,0"
+                                    ToolTip="Удалить текущее изображение"/>
+                        </StackPanel>
+
+                        <TextBlock x:Name="lblImageInfo" FontSize="11" Foreground="#6C757D" 
+                                  Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Заголовок:" 
                           Margin="0,0,15,10" VerticalAlignment="Center" 
                           FontWeight="SemiBold" Foreground="#333333"/>
-                <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtTitle" Height="35" 
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtTitle" Height="35" 
                         FontSize="14" Padding="8" Margin="0,0,0,15"
                         BorderBrush="#CCCCCC" BorderThickness="1"
                         ToolTip="Введите заголовок объявления (обязательное поле)"/>
-                <TextBlock Grid.Row="0" Grid.Column="2" Text="*" Foreground="Red" 
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="*" Foreground="Red" 
                           FontWeight="Bold" VerticalAlignment="Center" 
                           ToolTip="Обязательное поле"/>
 
-                <!-- Описание -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Описание:" 
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Описание:" 
                           Margin="0,0,15,10" VerticalAlignment="Top" 
                           FontWeight="SemiBold" Foreground="#333333"/>
-                <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtDescription" Height="100" 
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtDescription" Height="100" 
                         TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
                         FontSize="14" Padding="8" Margin="0,0,0,15"
                         BorderBrush="#CCCCCC" BorderThickness="1"
                         ToolTip="Введите подробное описание объявления"/>
 
-                <!-- Дата -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Дата публикации:" 
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Дата публикации:" 
                           Margin="0,0,15,10" VerticalAlignment="Center" 
                           FontWeight="SemiBold" Foreground="#333333"/>
-                <DatePicker Grid.Row="2" Grid.Column="1" x:Name="dpDate" Height="35" 
+                <DatePicker Grid.Row="3" Grid.Column="1" x:Name="dpDate" Height="35" 
                            FontSize="14" Margin="0,0,0,15"
                            BorderBrush="#CCCCCC" BorderThickness="1"
                            ToolTip="Выберите дату публикации объявления"/>
-                <TextBlock Grid.Row="2" Grid.Column="2" Text="*" Foreground="Red" 
-                          FontWeight="Bold" VerticalAlignment="Center"
-                          ToolTip="Обязательное поле"/>
-
-                <!-- Город -->
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Город:" 
-                          Margin="0,0,15,10" VerticalAlignment="Center" 
-                          FontWeight="SemiBold" Foreground="#333333"/>
-                <ComboBox Grid.Row="3" Grid.Column="1" x:Name="cmbCity" Height="35" 
-                         FontSize="14" Margin="0,0,0,15" 
-                         DisplayMemberPath="city1"
-                         BorderBrush="#CCCCCC" BorderThickness="1"
-                         ToolTip="Выберите город из списка"/>
                 <TextBlock Grid.Row="3" Grid.Column="2" Text="*" Foreground="Red" 
                           FontWeight="Bold" VerticalAlignment="Center"
                           ToolTip="Обязательное поле"/>
 
-                <!-- Категория -->
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Категория:" 
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Город:" 
                           Margin="0,0,15,10" VerticalAlignment="Center" 
                           FontWeight="SemiBold" Foreground="#333333"/>
-                <ComboBox Grid.Row="4" Grid.Column="1" x:Name="cmbCategory" Height="35" 
+                <ComboBox Grid.Row="4" Grid.Column="1" x:Name="cmbCity" Height="35" 
                          FontSize="14" Margin="0,0,0,15" 
-                         DisplayMemberPath="name"
+                         DisplayMemberPath="city1"
                          BorderBrush="#CCCCCC" BorderThickness="1"
-                         ToolTip="Выберите категорию объявления"/>
+                         ToolTip="Выберите город из списка"/>
                 <TextBlock Grid.Row="4" Grid.Column="2" Text="*" Foreground="Red" 
                           FontWeight="Bold" VerticalAlignment="Center"
                           ToolTip="Обязательное поле"/>
 
-                <!-- Тип объявления -->
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Тип:" 
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Категория:" 
                           Margin="0,0,15,10" VerticalAlignment="Center" 
                           FontWeight="SemiBold" Foreground="#333333"/>
-                <ComboBox Grid.Row="5" Grid.Column="1" x:Name="cmbType" Height="35" 
+                <ComboBox Grid.Row="5" Grid.Column="1" x:Name="cmbCategory" Height="35" 
                          FontSize="14" Margin="0,0,0,15" 
-                         DisplayMemberPath="type1"
+                         DisplayMemberPath="name"
                          BorderBrush="#CCCCCC" BorderThickness="1"
-                         ToolTip="Выберите тип объявления"/>
+                         ToolTip="Выберите категорию объявления"/>
                 <TextBlock Grid.Row="5" Grid.Column="2" Text="*" Foreground="Red" 
                           FontWeight="Bold" VerticalAlignment="Center"
                           ToolTip="Обязательное поле"/>
 
-                <!-- Статус объявления -->
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="Статус:" 
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Тип:" 
                           Margin="0,0,15,10" VerticalAlignment="Center" 
                           FontWeight="SemiBold" Foreground="#333333"/>
-                <ComboBox Grid.Row="6" Grid.Column="1" x:Name="cmbStatus" Height="35" 
+                <ComboBox Grid.Row="6" Grid.Column="1" x:Name="cmbType" Height="35" 
+                         FontSize="14" Margin="0,0,0,15" 
+                         DisplayMemberPath="type1"
+                         BorderBrush="#CCCCCC" BorderThickness="1"
+                         ToolTip="Выберите тип объявления"/>
+                <TextBlock Grid.Row="6" Grid.Column="2" Text="*" Foreground="Red" 
+                          FontWeight="Bold" VerticalAlignment="Center"
+                          ToolTip="Обязательное поле"/>
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Статус:" 
+                          Margin="0,0,15,10" VerticalAlignment="Center" 
+                          FontWeight="SemiBold" Foreground="#333333"/>
+                <ComboBox Grid.Row="7" Grid.Column="1" x:Name="cmbStatus" Height="35" 
                          FontSize="14" Margin="0,0,0,15" 
                          DisplayMemberPath="status1"
                          BorderBrush="#CCCCCC" BorderThickness="1"
                          SelectionChanged="cmbStatus_SelectionChanged"
                          ToolTip="Выберите статус объявления"/>
-                <TextBlock Grid.Row="6" Grid.Column="2" Text="*" Foreground="Red" 
-                          FontWeight="Bold" VerticalAlignment="Center"
-                          ToolTip="Обязательное поле"/>
-
-                <!-- Цена -->
-                <TextBlock Grid.Row="7" Grid.Column="0" Text="Цена:" 
-                          Margin="0,0,15,10" VerticalAlignment="Center" 
-                          FontWeight="SemiBold" Foreground="#333333"/>
-                <TextBox Grid.Row="7" Grid.Column="1" x:Name="txtPrice" Height="35" 
-                        FontSize="14" Padding="8" Margin="0,0,0,15"
-                        BorderBrush="#CCCCCC" BorderThickness="1"
-                        ToolTip="Введите цену в формате 0.00 (только цифры и точка)"
-                        PreviewTextInput="txtPrice_PreviewTextInput"/>
                 <TextBlock Grid.Row="7" Grid.Column="2" Text="*" Foreground="Red" 
                           FontWeight="Bold" VerticalAlignment="Center"
                           ToolTip="Обязательное поле"/>
 
-                <!-- Блок для ввода прибыли (только при завершении) -->
-                <Border x:Name="profitPanel" Grid.Row="8" Grid.Column="1" 
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Цена:" 
+                          Margin="0,0,15,10" VerticalAlignment="Center" 
+                          FontWeight="SemiBold" Foreground="#333333"/>
+                <TextBox Grid.Row="8" Grid.Column="1" x:Name="txtPrice" Height="35" 
+                        FontSize="14" Padding="8" Margin="0,0,0,15"
+                        BorderBrush="#CCCCCC" BorderThickness="1"
+                        ToolTip="Введите цену в формате 0.00 (только цифры и точка)"
+                        PreviewTextInput="txtPrice_PreviewTextInput"/>
+                <TextBlock Grid.Row="8" Grid.Column="2" Text="*" Foreground="Red" 
+                          FontWeight="Bold" VerticalAlignment="Center"
+                          ToolTip="Обязательное поле"/>
+
+                <Border x:Name="profitPanel" Grid.Row="9" Grid.Column="1" 
                        Background="#F0F8F0" BorderBrush="#C0E0C0" BorderThickness="1"
                        Padding="15" Margin="0,0,0,15" CornerRadius="4" Visibility="Collapsed">
                     <StackPanel>
@@ -173,8 +207,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Блок ошибок -->
-                <Border x:Name="errorBorder" Grid.Row="9" Grid.ColumnSpan="3" 
+                <Border x:Name="errorBorder" Grid.Row="10" Grid.ColumnSpan="3" 
                        Background="#FEF7F7" BorderBrush="#F4C7C3" BorderThickness="1" 
                        Padding="15" CornerRadius="4" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">

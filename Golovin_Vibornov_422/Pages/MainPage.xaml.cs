@@ -45,7 +45,6 @@ namespace Golovin_Vibornov_422.Pages
                 var types = await _context.type.OrderBy(t => t.type1).ToListAsync();
                 var statuses = await _context.status.OrderBy(s => s.status1).ToListAsync();
 
-                // Добавляем пустой элемент для каждого фильтра
                 var allCities = new List<city> { new city { id = 0, city1 = "Все города" } };
                 allCities.AddRange(cities);
 
@@ -63,7 +62,6 @@ namespace Golovin_Vibornov_422.Pages
                 cmbType.ItemsSource = allTypes;
                 cmbStatus.ItemsSource = allStatuses;
 
-                // Выбираем первые элементы
                 cmbCity.SelectedIndex = 0;
                 cmbCategory.SelectedIndex = 0;
                 cmbType.SelectedIndex = 0;
@@ -84,21 +82,18 @@ namespace Golovin_Vibornov_422.Pages
 
             try
             {
-                // Загружаем все активные объявления
                 var ads = await _context.ads_data
                     .Include(a => a.city)
                     .Include(a => a.category1)
                     .Include(a => a.type)
                     .Include(a => a.status)
                     .Include(a => a.user)
-                    .Where(a => a.status.status1 == "Активно") // Только активные объявления
+                    .Where(a => a.status.status1 == "Активно")
                     .OrderByDescending(a => a.ad_post_date)
                     .ToListAsync();
 
-                // Создаем список для отображения с дополнительными свойствами
                 _allAds = ads.Select(ad => new
                 {
-                    // Основные свойства
                     ad.id,
                     ad.ad_title,
                     ad.ad_description,
@@ -109,18 +104,16 @@ namespace Golovin_Vibornov_422.Pages
                     ad.ad_status_id,
                     ad.price,
                     ad.user_id,
-                    ad.ad_image_path, // Добавляем путь к изображению
+                    ad.ad_image_path,
 
-                    // Связанные данные
                     City = ad.city,
                     Category = ad.category1,
                     AdType = ad.type,
                     AdStatus = ad.status,
                     User = ad.user,
 
-                    // Дополнительные свойства для UI
-                    HasImage = !string.IsNullOrEmpty(ad.ad_image_path), // Проверяем наличие пути к изображению
-                    ImageSource = LoadImageFromPath(ad.ad_image_path), // Загружаем изображение
+                    HasImage = !string.IsNullOrEmpty(ad.ad_image_path),
+                    ImageSource = LoadImageFromPath(ad.ad_image_path),
                     StatusColor = ad.status.status1 == "Активно" ?
                         new SolidColorBrush(Color.FromRgb(76, 175, 80)) :
                         new SolidColorBrush(Color.FromRgb(158, 158, 158))
@@ -146,7 +139,6 @@ namespace Golovin_Vibornov_422.Pages
 
             try
             {
-                // Проверяем разные варианты путей
                 string fullPath = GetFullImagePath(imagePath);
 
                 if (File.Exists(fullPath))
@@ -156,19 +148,27 @@ namespace Golovin_Vibornov_422.Pages
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
                     bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
                     bitmap.EndInit();
-                    bitmap.Freeze(); // Рекомендуется для производительности
+                    bitmap.Freeze();
                     return bitmap;
                 }
                 else
                 {
-                    // Если файл не найден, логируем для отладки
-                    System.Diagnostics.Debug.WriteLine($"Файл изображения не найден: {fullPath}");
-                    return null;
+                    string alternativePath = FindImageInAlternativeLocations(imagePath);
+                    if (!string.IsNullOrEmpty(alternativePath) && File.Exists(alternativePath))
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.UriSource = new Uri(alternativePath, UriKind.Absolute);
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        return bitmap;
+                    }
                 }
+                return null;
             }
             catch (Exception ex)
             {
-                // В случае ошибки загрузки изображения
                 System.Diagnostics.Debug.WriteLine($"Ошибка загрузки изображения {imagePath}: {ex.Message}");
                 return null;
             }
@@ -176,20 +176,82 @@ namespace Golovin_Vibornov_422.Pages
 
         private string GetFullImagePath(string imagePath)
         {
-            // Если путь уже абсолютный
+            if (string.IsNullOrEmpty(imagePath))
+                return null;
+
             if (Path.IsPathRooted(imagePath))
                 return imagePath;
 
-            // Если путь относительный, добавляем базовую директорию
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-            // Убираем начальные слеши из относительного пути
+            string projectDirectory = GetProjectDirectory();
             string cleanPath = imagePath.TrimStart('\\', '/');
-
-            // Формируем полный путь
-            string fullPath = Path.Combine(baseDirectory, "Images", "ads", cleanPath);
+            string fullPath = Path.Combine(projectDirectory, "Images", cleanPath);
 
             return fullPath;
+        }
+
+        private string FindImageInAlternativeLocations(string imagePath)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+                return null;
+
+            string cleanPath = imagePath.TrimStart('\\', '/');
+
+            string[] possiblePaths = {
+                Path.Combine(GetProjectDirectory(), "Images", cleanPath),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", cleanPath),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                           "Golovin_Vibornov_422", "Images", cleanPath),
+                Path.Combine(GetProjectDirectory(), "Images", "ads", Path.GetFileName(cleanPath)),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", "ads", Path.GetFileName(cleanPath))
+            };
+
+            foreach (string path in possiblePaths)
+            {
+                if (File.Exists(path))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Изображение найдено: {path}");
+                    return path;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Изображение не найдено: {imagePath}");
+            return null;
+        }
+
+        private string GetProjectDirectory()
+        {
+            try
+            {
+                string executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string binDebugDirectory = Path.GetDirectoryName(executablePath);
+
+                DirectoryInfo binDirectory = Directory.GetParent(binDebugDirectory);
+                if (binDirectory != null)
+                {
+                    DirectoryInfo projectDirectory = binDirectory.Parent;
+                    if (projectDirectory != null)
+                    {
+                        return projectDirectory.FullName;
+                    }
+                }
+
+                string currentDirectory = Directory.GetCurrentDirectory();
+                if (currentDirectory.Contains("bin\\Debug") || currentDirectory.Contains("bin\\Release"))
+                {
+                    DirectoryInfo currentDir = Directory.GetParent(currentDirectory);
+                    if (currentDir != null && currentDir.Parent != null)
+                    {
+                        return currentDir.Parent.FullName;
+                    }
+                }
+
+                return currentDirectory;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка получения пути проекта: {ex.Message}");
+                return Directory.GetCurrentDirectory();
+            }
         }
 
         private void ApplyFilters()
@@ -198,7 +260,6 @@ namespace Golovin_Vibornov_422.Pages
 
             var filteredAds = _allAds.AsEnumerable();
 
-            // Применяем текстовый поиск
             if (!string.IsNullOrWhiteSpace(txtSearch.Text))
             {
                 var searchTerm = txtSearch.Text.ToLower();
@@ -208,31 +269,26 @@ namespace Golovin_Vibornov_422.Pages
                 );
             }
 
-            // Применяем фильтр по городу
             if (cmbCity.SelectedItem is city selectedCity && selectedCity.id != 0)
             {
                 filteredAds = filteredAds.Where(ad => ad.city_id == selectedCity.id);
             }
 
-            // Применяем фильтр по категории
             if (cmbCategory.SelectedItem is category selectedCategory && selectedCategory.id != 0)
             {
                 filteredAds = filteredAds.Where(ad => ad.category == selectedCategory.id);
             }
 
-            // Применяем фильтр по типу
             if (cmbType.SelectedItem is type selectedType && selectedType.id != 0)
             {
                 filteredAds = filteredAds.Where(ad => ad.ad_type_id == selectedType.id);
             }
 
-            // Применяем фильтр по статусу
             if (cmbStatus.SelectedItem is status selectedStatus && selectedStatus.id != 0)
             {
                 filteredAds = filteredAds.Where(ad => ad.ad_status_id == selectedStatus.id);
             }
 
-            // Обновляем UI
             itemsAds.ItemsSource = filteredAds.ToList();
             UpdateStatusBar(filteredAds.Count());
         }
@@ -241,7 +297,6 @@ namespace Golovin_Vibornov_422.Pages
         {
             lblCount.Text = $"Найдено объявлений: {count}";
 
-            // Информация о примененных фильтрах
             var filters = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(txtSearch.Text))
@@ -264,7 +319,6 @@ namespace Golovin_Vibornov_422.Pages
                 "Фильтры не применены";
         }
 
-        // Обработчики событий
         private void txtSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_allAds != null)
@@ -297,7 +351,6 @@ namespace Golovin_Vibornov_422.Pages
                 NavigationService.GoBack();
         }
 
-        // Вспомогательные методы
         private void ShowLoadingState(string message)
         {
             lblStatus.Text = message;
@@ -318,8 +371,7 @@ namespace Golovin_Vibornov_422.Pages
         {
             try
             {
-                // Переход на страницу авторизации
-                var loginPage = new LoginPage(); // Замените на вашу страницу авторизации
+                var loginPage = new LoginPage();
                 NavigationService.Navigate(loginPage);
             }
             catch (Exception ex)
@@ -327,6 +379,7 @@ namespace Golovin_Vibornov_422.Pages
                 ShowErrorMessage($"Не удалось открыть страницу авторизации: {ex.Message}", "Ошибка");
             }
         }
+
 
     }
 }

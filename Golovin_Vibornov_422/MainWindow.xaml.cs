@@ -16,14 +16,11 @@ namespace Golovin_Vibornov_422
         {
             InitializeComponent();
 
-            // Инициализация сервиса навигации
             services.NavigationService.Initialize(MainFrame);
 
-            // Подписка на события авторизации
             AuthService.UserLoggedIn += OnUserLoggedIn;
             AuthService.UserLoggedOut += OnUserLoggedOut;
 
-            // Начальная страница - авторизация
             NavigateToLoginPage();
         }
 
@@ -34,7 +31,6 @@ namespace Golovin_Vibornov_422
 
         private void OnUserLoggedIn(user user)
         {
-            // Переход на главную страницу после успешной авторизации
             Dispatcher.Invoke(() =>
             {
                 services.NavigationService.NavigateTo(new AdsManagementPage());
@@ -43,7 +39,6 @@ namespace Golovin_Vibornov_422
 
         private void OnUserLoggedOut()
         {
-            // Очистка истории навигации и возврат на страницу авторизации
             Dispatcher.Invoke(() =>
             {
                 while (MainFrame.CanGoBack)
@@ -56,7 +51,6 @@ namespace Golovin_Vibornov_422
 
         protected override void OnClosed(EventArgs e)
         {
-            // Отписка от событий при закрытии приложения
             AuthService.UserLoggedIn -= OnUserLoggedIn;
             AuthService.UserLoggedOut -= OnUserLoggedOut;
             base.OnClosed(e);

@@ -23,13 +23,11 @@ namespace Golovin_Vibornov_422.Pages
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            // Защита от множественных нажатий
             if (_isLoggingIn) return;
 
             string login = txtLogin.Text.Trim();
             string password = txtPassword.Password;
 
-            // Валидация введенных данных
             if (string.IsNullOrEmpty(login))
             {
                 ShowError("Пожалуйста, введите логин");
@@ -44,12 +42,10 @@ namespace Golovin_Vibornov_422.Pages
                 return;
             }
 
-            // Блокируем интерфейс на время авторизации
             SetLoginState(true, sender);
 
             try
             {
-                // Выполняем авторизацию в отдельном потоке чтобы не блокировать UI
                 bool success = await Task.Run(() => AuthService.Login(login, password));
 
                 if (!success)
@@ -58,7 +54,6 @@ namespace Golovin_Vibornov_422.Pages
                     txtPassword.Password = "";
                     txtPassword.Focus();
                 }
-                // При успешной авторизации автоматически произойдет переход на главную страницу через событие
             }
             catch (Exception ex)
             {
@@ -111,7 +106,6 @@ namespace Golovin_Vibornov_422.Pages
             errorBorder.Visibility = Visibility.Collapsed;
         }
 
-        // Обработчики для улучшения UX - скрытие ошибки при начале ввода
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             HideError();
@@ -146,7 +140,6 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
-        // Обработка нажатия Enter для удобства пользователя
         private void txtLogin_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)

@@ -1,25 +1,27 @@
 ﻿using Golovin_Vibornov_422.services;
+using Microsoft.Win32;
 using System;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Golovin_Vibornov_422.Pages
 {
-    /// <summary>
-    /// Логика взаимодействия для AdEditPage.xaml
-    /// </summary>
     public partial class AdEditPage : Page
     {
         private AdsDatabaseEntities _context;
         private ads_data _ad;
         private bool _isNew;
         private bool _isLoading = false;
+        private string _selectedImagePath;
+        private string _currentImagePath;
 
         // Кэш для справочных данных
         private static System.Collections.Generic.List<city> _cachedCities;
@@ -57,16 +59,13 @@ namespace Golovin_Vibornov_422.Pages
             {
                 user_id = AuthService.CurrentUser.id,
                 ad_post_date = DateTime.Today,
-                ad_status_id = 1 // Активно по умолчанию
+                ad_status_id = 1 
             };
         }
 
         private void InitializeExistingAd(ads_data ad)
         {
-            // Создаем контекст только один раз
             _context = new AdsDatabaseEntities();
-
-            // Явно загружаем связанные данные
             _ad = _context.ads_data
                 .Include(a => a.city)
                 .Include(a => a.category1)
@@ -79,6 +78,10 @@ namespace Golovin_Vibornov_422.Pages
                 _isNew = true;
                 InitializeNewAd();
             }
+            else
+            {
+                _currentImagePath = _ad.ad_image_path;
+            }
         }
 
         private async void InitializePage()
@@ -88,21 +91,23 @@ namespace Golovin_Vibornov_422.Pages
 
             try
             {
-                // Для нового объявления создаем контекст
                 if (_isNew && _context == null)
                 {
                     _context = new AdsDatabaseEntities();
                 }
 
-                // Загружаем справочники
                 await LoadReferenceData();
 
                 lblTitle.Text = _isNew ? "Создание нового объявления" : "Редактирование объявления";
 
-                // Устанавливаем дату только для нового объявления
                 if (_isNew)
                 {
                     dpDate.SelectedDate = _ad.ad_post_date;
+                }
+
+                if (!_isNew && !string.IsNullOrEmpty(_currentImagePath))
+                {
+                    LoadImagePreview(_currentImagePath);
                 }
 
                 HideLoadingState();
@@ -122,7 +127,6 @@ namespace Golovin_Vibornov_422.Pages
         {
             try
             {
-                // Проверяем, нужно ли обновить кэш
                 bool shouldRefreshCache = _cachedCities == null ||
                                          _cachedCategories == null ||
                                          _cachedTypes == null ||
@@ -138,7 +142,6 @@ namespace Golovin_Vibornov_422.Pages
 
                     await Task.WhenAll(citiesTask, categoriesTask, typesTask, statusesTask);
 
-                    // Сохраняем в кэш
                     _cachedCities = citiesTask.Result;
                     _cachedCategories = categoriesTask.Result;
                     _cachedTypes = typesTask.Result;
@@ -146,7 +149,6 @@ namespace Golovin_Vibornov_422.Pages
                     _lastCacheTime = DateTime.Now;
                 }
 
-                // Устанавливаем данные в UI потоке
                 Dispatcher.Invoke(() =>
                 {
                     SetComboBoxData(cmbCity, _cachedCities, "id", "city1");
@@ -189,7 +191,6 @@ namespace Golovin_Vibornov_422.Pages
 
                 txtPrice.Text = _ad.price.ToString("F2");
 
-                // Используем Dispatcher для установки значений после загрузки комбобоксов
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     try
@@ -217,14 +218,12 @@ namespace Golovin_Vibornov_422.Pages
         {
             if (value != null && Convert.ToInt32(value) > 0)
             {
-                // Ждем пока комбобокс заполнится данными
                 if (comboBox.Items.Count > 0)
                 {
                     comboBox.SelectedValue = value;
                 }
                 else
                 {
-                    // Если данные еще не загружены, откладываем установку
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
                         comboBox.SelectedValue = value;
@@ -233,11 +232,221 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
+        private void SelectImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var openFileDialog = new OpenFileDialog
+                {
+                    Filter = "Изображения (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp|Все файлы (*.*)|*.*",
+                    Title = "Выберите изображение для объявления",
+                    Multiselect = false
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var selectedFile = openFileDialog.FileName;
+
+                    var fileInfo = new FileInfo(selectedFile);
+                    if (fileInfo.Length > 5 * 1024 * 1024)
+                    {
+                        ShowError("Размер изображения не должен превышать 5 МБ");
+                        return;
+                    }
+
+                    _selectedImagePath = selectedFile;
+                    LoadImagePreview(_selectedImagePath);
+
+                    lblImageInfo.Text = $"Файл: {Path.GetFileName(selectedFile)}\nРазмер: {(fileInfo.Length / 1024.0):F1} КБ";
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Ошибка при выборе изображения: {ex.Message}");
+            }
+        }
+
+        private void RemoveImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedImagePath = null;
+            _currentImagePath = null;
+            imgPreview.Source = new BitmapImage(new Uri("pack://application:,,,/Images/no-image.jpg"));
+            lblImageInfo.Text = "Изображение не выбрано";
+        }
+
+        private void LoadImagePreview(string imagePath)
+        {
+            try
+            {
+                string fullPath = GetFullImagePath(imagePath);
+
+                if (File.Exists(fullPath))
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    imgPreview.Source = bitmap;
+
+                    var fileInfo = new FileInfo(fullPath);
+                    lblImageInfo.Text = $"Файл: {Path.GetFileName(fullPath)}\nРазмер: {(fileInfo.Length / 1024.0):F1} КБ";
+                }
+                else
+                {
+                    imgPreview.Source = new BitmapImage(new Uri("pack://application:,,,/Images/no-image.jpg"));
+                    lblImageInfo.Text = "Изображение не найдено";
+                    System.Diagnostics.Debug.WriteLine($"Файл изображения не найден: {fullPath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Ошибка загрузки изображения: {ex.Message}");
+                imgPreview.Source = new BitmapImage(new Uri("pack://application:,,,/Images/no-image.jpg"));
+                lblImageInfo.Text = "Ошибка загрузки изображения";
+            }
+        }
+
+        private string SaveImageToFolder(string sourceImagePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(sourceImagePath) || !File.Exists(sourceImagePath))
+                    return null;
+
+                string projectDirectory = GetProjectDirectory();
+                string imagesFolder = Path.Combine(projectDirectory, "Images", "ads");
+
+                if (!Directory.Exists(imagesFolder))
+                {
+                    Directory.CreateDirectory(imagesFolder);
+                }
+
+                string fileExtension = Path.GetExtension(sourceImagePath);
+                string fileName = $"ad_{DateTime.Now:yyyyMMddHHmmssfff}{fileExtension}";
+                string destinationPath = Path.Combine(imagesFolder, fileName);
+
+                File.Copy(sourceImagePath, destinationPath, true);
+
+                return Path.Combine("ads", fileName);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка сохранения изображения: {ex.Message}");
+                return null;
+            }
+        }
+
+        private string GetProjectDirectory()
+        {
+            try
+            {
+                string executablePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string binDebugDirectory = Path.GetDirectoryName(executablePath);
+
+                DirectoryInfo binDirectory = Directory.GetParent(binDebugDirectory);
+                if (binDirectory != null)
+                {
+                    DirectoryInfo projectDirectory = binDirectory.Parent;
+                    if (projectDirectory != null)
+                    {
+                        return projectDirectory.FullName;
+                    }
+                }
+
+                string currentDirectory = Directory.GetCurrentDirectory();
+                if (currentDirectory.Contains("bin\\Debug") || currentDirectory.Contains("bin\\Release"))
+                {
+                    DirectoryInfo currentDir = Directory.GetParent(currentDirectory);
+                    if (currentDir != null && currentDir.Parent != null)
+                    {
+                        return currentDir.Parent.FullName;
+                    }
+                }
+
+                return currentDirectory;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка получения пути проекта: {ex.Message}");
+                return Directory.GetCurrentDirectory();
+            }
+        }
+
+        private void DeleteOldImage(string oldImagePath)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(oldImagePath))
+                {
+                    string fullPath = GetFullImagePath(oldImagePath);
+                    if (File.Exists(fullPath))
+                    {
+                        File.Delete(fullPath);
+                    }
+
+                    string alternativePath = FindImageInAlternativeLocations(oldImagePath);
+                    if (!string.IsNullOrEmpty(alternativePath) && File.Exists(alternativePath))
+                    {
+                        File.Delete(alternativePath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка удаления старого изображения: {ex.Message}");
+            }
+        }
+
+        private string GetFullImagePath(string imagePath)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+                return null;
+
+            if (Path.IsPathRooted(imagePath))
+                return imagePath;
+
+            string projectDirectory = GetProjectDirectory();
+            string cleanPath = imagePath.TrimStart('\\', '/');
+            string fullPath = Path.Combine(projectDirectory, "Images", cleanPath);
+
+            return fullPath;
+        }
+
+        private string FindImageInAlternativeLocations(string imagePath)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+                return null;
+
+            string cleanPath = imagePath.TrimStart('\\', '/');
+
+            string[] possiblePaths = {
+                Path.Combine(GetProjectDirectory(), "Images", cleanPath),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", cleanPath),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                           "Golovin_Vibornov_422", "Images", cleanPath),
+                Path.Combine(GetProjectDirectory(), "Images", "ads", Path.GetFileName(cleanPath)),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", "ads", Path.GetFileName(cleanPath))
+            };
+
+            foreach (string path in possiblePaths)
+            {
+                if (File.Exists(path))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Изображение найдено: {path}");
+                    return path;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Изображение не найдено: {imagePath}");
+            return null;
+        }
+
         private void CheckStatusForProfitPanel()
         {
             try
             {
-                // Показываем панель ввода прибыли только если статус "Завершено" (ID=2)
                 if (_ad.ad_status_id == 2)
                 {
                     profitPanel.Visibility = Visibility.Visible;
@@ -257,11 +466,9 @@ namespace Golovin_Vibornov_422.Pages
         {
             if (!_isLoading && cmbStatus.SelectedItem is status selectedStatus)
             {
-                // Показываем панель ввода прибыли при выборе статуса "Завершено"
                 if (selectedStatus.id == 2)
                 {
                     profitPanel.Visibility = Visibility.Visible;
-                    // Предзаполняем ценой из объявления, если поле пустое
                     if (string.IsNullOrEmpty(txtProfit.Text) && _ad.price > 0)
                     {
                         txtProfit.Text = ((int)_ad.price).ToString();
@@ -284,7 +491,6 @@ namespace Golovin_Vibornov_422.Pages
                 ShowLoadingState("Сохранение данных...");
                 btnSave.IsEnabled = false;
 
-                // Собираем данные из формы
                 _ad.ad_title = txtTitle.Text.Trim();
                 _ad.ad_description = txtDescription.Text.Trim();
                 _ad.ad_post_date = dpDate.SelectedDate.Value;
@@ -294,13 +500,30 @@ namespace Golovin_Vibornov_422.Pages
                 _ad.ad_status_id = GetSelectedId(cmbStatus);
                 _ad.price = decimal.Parse(txtPrice.Text);
 
-                // Обработка прибыли при завершении объявления
+                if (!string.IsNullOrEmpty(_selectedImagePath))
+                {
+                    if (!string.IsNullOrEmpty(_currentImagePath))
+                    {
+                        DeleteOldImage(_currentImagePath);
+                    }
+
+                    string savedImagePath = SaveImageToFolder(_selectedImagePath);
+                    if (!string.IsNullOrEmpty(savedImagePath))
+                    {
+                        _ad.ad_image_path = savedImagePath;
+                    }
+                }
+                else if (_selectedImagePath == null && !string.IsNullOrEmpty(_currentImagePath))
+                {
+                    DeleteOldImage(_currentImagePath);
+                    _ad.ad_image_path = null;
+                }
+
                 if (_ad.ad_status_id == 2 && !string.IsNullOrEmpty(txtProfit.Text))
                 {
                     await ProcessProfit();
                 }
 
-                // Сохранение в базу данных
                 if (_isNew)
                 {
                     _context.ads_data.Add(_ad);
@@ -308,9 +531,7 @@ namespace Golovin_Vibornov_422.Pages
 
                 await _context.SaveChangesAsync();
 
-                // Очищаем кэш после успешного сохранения
                 ClearCache();
-
                 AdSaved?.Invoke();
 
                 MessageBox.Show(
@@ -347,19 +568,16 @@ namespace Golovin_Vibornov_422.Pages
             {
                 try
                 {
-                    // Ищем существующую запись о прибыли пользователя
                     var profit = await _context.profit
                         .FirstOrDefaultAsync(p => p.user_id == AuthService.CurrentUser.id);
 
                     if (profit != null)
                     {
-                        // Обновляем существующую запись
                         profit.profit1 += profitAmount;
                         _context.Entry(profit).State = EntityState.Modified;
                     }
                     else
                     {
-                        // Создаем новую запись
                         profit = new profit
                         {
                             user_id = AuthService.CurrentUser.id,
@@ -382,7 +600,6 @@ namespace Golovin_Vibornov_422.Pages
 
         private void ClearCache()
         {
-            // Очищаем кэш при необходимости
             _cachedCities = null;
             _cachedCategories = null;
             _cachedTypes = null;
@@ -394,7 +611,6 @@ namespace Golovin_Vibornov_422.Pages
         {
             HideError();
 
-            // Проверка обязательных полей
             if (string.IsNullOrWhiteSpace(txtTitle.Text))
             {
                 ShowError("Заголовок объявления является обязательным полем. Пожалуйста, введите заголовок.");
@@ -444,7 +660,6 @@ namespace Golovin_Vibornov_422.Pages
                 return false;
             }
 
-            // Проверка цены
             if (!decimal.TryParse(txtPrice.Text, out decimal price) || price < 0)
             {
                 ShowError("Цена должна быть положительным числом. Пожалуйста, введите корректное значение цены.");
@@ -452,7 +667,6 @@ namespace Golovin_Vibornov_422.Pages
                 return false;
             }
 
-            // Проверка прибыли при завершенном статусе
             if (cmbStatus.SelectedItem is status status && status.id == 2)
             {
                 if (string.IsNullOrWhiteSpace(txtProfit.Text))
@@ -496,7 +710,6 @@ namespace Golovin_Vibornov_422.Pages
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            // Подтверждение отмены при наличии изменений
             if (HasUnsavedChanges())
             {
                 var result = MessageBox.Show(
@@ -520,10 +733,9 @@ namespace Golovin_Vibornov_422.Pages
 
         private bool HasUnsavedChanges()
         {
-            // Простая проверка на наличие изменений
             if (_isNew) return true;
 
-            return txtTitle.Text != _ad.ad_title ||
+            bool hasChanges = txtTitle.Text != _ad.ad_title ||
                    txtDescription.Text != _ad.ad_description ||
                    dpDate.SelectedDate != _ad.ad_post_date ||
                    (cmbCity.SelectedValue != null && (int)cmbCity.SelectedValue != _ad.city_id) ||
@@ -531,9 +743,13 @@ namespace Golovin_Vibornov_422.Pages
                    (cmbType.SelectedValue != null && (int)cmbType.SelectedValue != _ad.ad_type_id) ||
                    (cmbStatus.SelectedValue != null && (int)cmbStatus.SelectedValue != _ad.ad_status_id) ||
                    (decimal.TryParse(txtPrice.Text, out decimal currentPrice) && currentPrice != _ad.price);
+
+            bool imageChanged = _selectedImagePath != null ||
+                               (_selectedImagePath == null && !string.IsNullOrEmpty(_currentImagePath));
+
+            return hasChanges || imageChanged;
         }
 
-        // Обработчики для улучшения UX
         private void Control_GotFocus(object sender, RoutedEventArgs e)
         {
             HideError();
@@ -551,10 +767,8 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
-        // Валидация ввода чисел
         private void txtPrice_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Разрешаем только цифры и точку
             foreach (char c in e.Text)
             {
                 if (!char.IsDigit(c) && c != '.')
@@ -564,7 +778,6 @@ namespace Golovin_Vibornov_422.Pages
                 }
             }
 
-            // Проверяем, что точка только одна
             var textBox = (TextBox)sender;
             if (e.Text == "." && textBox.Text.Contains('.'))
             {
@@ -574,7 +787,6 @@ namespace Golovin_Vibornov_422.Pages
 
         private void txtProfit_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Разрешаем только цифры для поля прибыли
             foreach (char c in e.Text)
             {
                 if (!char.IsDigit(c))
@@ -585,10 +797,8 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
-        // Обработчик выхода со страницы
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            // Аккуратно освобождаем ресурсы
             try
             {
                 _context?.Dispose();
