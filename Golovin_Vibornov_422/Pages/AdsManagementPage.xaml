@@ -50,8 +50,15 @@
             <StackPanel Orientation="Horizontal">
                 <Button Content="➕ Добавить объявление" Click="AddButton_Click" 
                         ToolTip="Создать новое объявление"/>
+                <Button Content="✏️ Редактировать" Click="EditButton_Click" 
+                        ToolTip="Редактировать выбранное объявление" 
+                        Margin="10,0,0,0"/>
+                <Button Content="🗑️ Удалить" Click="DeleteButton_Click" 
+                        ToolTip="Удалить выбранное объявление" 
+                        Margin="10,0,0,0"/>
                 <Button Content="🔄 Обновить список" Click="RefreshButton_Click" 
-                        ToolTip="Обновить данные объявлений" Margin="10,0,0,0"/>
+                        ToolTip="Обновить данные объявлений" 
+                        Margin="10,0,0,0"/>
             </StackPanel>
         </Border>
 
