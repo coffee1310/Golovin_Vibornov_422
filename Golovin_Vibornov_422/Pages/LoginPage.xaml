@@ -9,13 +9,32 @@
       Title="LoginPage">
 
     <Grid Background="#F5F5F5">
-        <Border BorderBrush="#CCCCCC" BorderThickness="1" Background="White" 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#0078D4" Padding="15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="← Назад" Click="BackButton_Click" 
+                        Background="Transparent" Foreground="White" BorderThickness="0"
+                        Padding="10,5" Cursor="Hand" FontSize="12"
+                        ToolTip="Вернуться на предыдущую страницу"/>
+
+                <TextBlock Grid.Column="1" Text="Авторизация в системе" 
+                          FontSize="20" FontWeight="Bold" Foreground="White"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" BorderBrush="#CCCCCC" BorderThickness="1" Background="White" 
                 VerticalAlignment="Center" HorizontalAlignment="Center" >
-            <StackPanel Width="320">
-                <TextBlock Text="Авторизация в системе" 
-                          FontSize="22" FontWeight="Bold" 
-                          HorizontalAlignment="Center" Margin="0,0,0,30"
-                          Foreground="#0078D4"/>
+            <StackPanel Width="320" Margin="20">
 
                 <TextBlock Text="Логин:" FontSize="14" FontWeight="SemiBold" 
                           Margin="0,0,0,5" Foreground="#333333"/>

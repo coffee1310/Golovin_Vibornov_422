@@ -7,6 +7,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using Golovin_Vibornov_422;
+
 namespace Golovin_Vibornov_422
 {
     using System;
@@ -16,7 +18,7 @@ namespace Golovin_Vibornov_422
     public partial class AdsDatabaseEntities : DbContext
     {
         public AdsDatabaseEntities()
-            : base("name=AdsDatabaseEntities1")
+            : base("name=AdsDatabaseEntities")
         {
         }
     
@@ -30,8 +32,8 @@ namespace Golovin_Vibornov_422
         public virtual DbSet<city> city { get; set; }
         public virtual DbSet<profit> profit { get; set; }
         public virtual DbSet<status> status { get; set; }
-        public virtual DbSet<sysdiagrams> sysdiagrams { get; set; }
         public virtual DbSet<type> type { get; set; }
         public virtual DbSet<user> user { get; set; }
     }
 }
+

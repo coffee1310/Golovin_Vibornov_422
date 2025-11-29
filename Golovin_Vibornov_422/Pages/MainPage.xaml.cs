@@ -344,11 +344,6 @@ namespace Golovin_Vibornov_422.Pages
             LoadAds();
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (NavigationService.CanGoBack)
-                NavigationService.GoBack();
-        }
 
         private void ShowLoadingState(string message)
         {

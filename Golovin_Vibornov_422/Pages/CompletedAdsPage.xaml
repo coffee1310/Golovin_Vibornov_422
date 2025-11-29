@@ -49,11 +49,6 @@
                         Background="#28a745" Foreground="White" BorderThickness="0"
                         Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
                         ToolTip="Обновить данные"/>
-                <Button Content="📊 Управление объявлениями" Click="ManageAdsButton_Click" 
-                        Background="#0078D4" Foreground="White" BorderThickness="0"
-                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
-                        Margin="10,0,0,0"
-                        ToolTip="Перейти к управлению объявлениями"/>
             </StackPanel>
         </Border>
 

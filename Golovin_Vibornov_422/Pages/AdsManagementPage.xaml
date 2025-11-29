@@ -31,16 +31,12 @@
 
                 <TextBlock Grid.Column="1" Text="Управление объявлениями" 
                           FontSize="20" FontWeight="Bold" Foreground="White"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                          HorizontalAlignment="Left" VerticalAlignment="Center" Margin="272,0,0,0"/>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock x:Name="lblUserInfo" Foreground="White" FontSize="12" 
                               Margin="0,0,15,0" VerticalAlignment="Center"
                               ToolTip="Текущий пользователь системы"/>
-                    <Button Content="Выйти" Click="LogoutButton_Click" 
-                            Background="Transparent" Foreground="White" BorderThickness="0"
-                            Padding="10,5" Cursor="Hand" FontSize="12"
-                            ToolTip="Выйти из системы"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -52,11 +48,6 @@
                         Background="#0078D4" Foreground="White" BorderThickness="0"
                         Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
                         ToolTip="Создать новое объявление"/>
-                <Button Content="🌐 Все объявления" Click="AllAdsButton_Click" 
-                        Background="#666666" Foreground="White" BorderThickness="0"
-                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
-                        ToolTip="Просмотр всех объявлений системы" 
-                        Margin="10,0,0,0"/>
                 <Button Content="🔄 Обновить список" Click="RefreshButton_Click" 
                         Background="#107C10" Foreground="White" BorderThickness="0"
                         Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"

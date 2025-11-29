@@ -29,6 +29,15 @@ namespace Golovin_Vibornov_422
             services.NavigationService.NavigateTo(new MainPage());
         }
 
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (MessageBox.Show("Вы уверены, что хотите закрыть окно?", "Message", MessageBoxButton.YesNo) == System.Windows.MessageBoxResult.No)
+                e.Cancel = true;
+            else
+                e.Cancel = false;
+        }
+
+
         private void OnUserLoggedIn(user user)
         {
             Dispatcher.Invoke(() =>

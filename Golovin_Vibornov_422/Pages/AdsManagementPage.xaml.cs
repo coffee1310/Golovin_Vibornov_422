@@ -73,7 +73,6 @@ namespace Golovin_Vibornov_422.Pages
 
                 var adsWithDetails = userAds.Select(ad => new
                 {
-                    // Основные свойства
                     ad.id,
                     ad.ad_title,
                     ad.ad_description,
@@ -429,30 +428,11 @@ namespace Golovin_Vibornov_422.Pages
             LoadAds();
         }
 
-        private void LogoutButton_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show(
-                "Вы уверены, что хотите выйти из системы?",
-                "Подтверждение выхода",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question,
-                MessageBoxResult.No);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                AuthService.Logout();
-            }
-        }
-
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             if (NavigationService.CanGoBack)
             {
                 NavigationService.GoBack();
-            }
-            else
-            {
-                LogoutButton_Click(sender, e);
             }
         }
 

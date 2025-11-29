@@ -4,21 +4,20 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="6e78f3eb5f334d9a9384dcb80694cbc0" Name="Diagram1">
+      <Diagram DiagramId="21002eaed2a34f3b836273a04275c3de" Name="Diagram1">
         <EntityTypeShape EntityType="AdsDatabaseModel.ads_data" Width="1.5" PointX="3" PointY="2.375" IsExpanded="true" />
         <EntityTypeShape EntityType="AdsDatabaseModel.category" Width="1.5" PointX="0.75" PointY="6.75" IsExpanded="true" />
         <EntityTypeShape EntityType="AdsDatabaseModel.city" Width="1.5" PointX="0.75" PointY="9" IsExpanded="true" />
         <EntityTypeShape EntityType="AdsDatabaseModel.profit" Width="1.5" PointX="3" PointY="8.375" IsExpanded="true" />
         <EntityTypeShape EntityType="AdsDatabaseModel.status" Width="1.5" PointX="0.75" PointY="11.375" IsExpanded="true" />
-        <EntityTypeShape EntityType="AdsDatabaseModel.sysdiagrams" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="AdsDatabaseModel.type" Width="1.5" PointX="0.75" PointY="13.75" IsExpanded="true" />
         <EntityTypeShape EntityType="AdsDatabaseModel.user" Width="1.5" PointX="0.75" PointY="3.375" IsExpanded="true" />
-        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__ad_sta__628FA481" ManuallyRouted="false" />
-        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__ad_typ__619B8048" ManuallyRouted="false" />
-        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__catego__60A75C0F" ManuallyRouted="false" />
-        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__city_i__5FB337D6" ManuallyRouted="false" />
-        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__user_i__5EBF139D" ManuallyRouted="false" />
-        <AssociationConnector Association="AdsDatabaseModel.FK__profit__user_id__46E78A0C" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__ad_sta__4316F928" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__ad_typ__440B1D61" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__catego__44FF419A" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__city_i__45F365D3" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__ads_data__user_i__46E78A0C" ManuallyRouted="false" />
+        <AssociationConnector Association="AdsDatabaseModel.FK__profit__user_id__47DBAE45" ManuallyRouted="false" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

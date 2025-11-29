@@ -155,5 +155,13 @@ namespace Golovin_Vibornov_422.Pages
                 LoginButton_Click(sender, e);
             }
         }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (NavigationService?.CanGoBack == true)
+            {
+                NavigationService.GoBack();
+            }
+        }
     }
 }
