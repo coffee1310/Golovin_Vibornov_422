@@ -33,7 +33,7 @@
             </Grid>
         </Border>
         <Border Grid.Row="1" BorderBrush="#CCCCCC" BorderThickness="1" Background="White" 
-                VerticalAlignment="Center" HorizontalAlignment="Center" >
+                VerticalAlignment="Center" HorizontalAlignment="Center" Width="500" Height="307" >
             <StackPanel Width="320" Margin="20">
 
                 <TextBlock Text="Логин:" FontSize="14" FontWeight="SemiBold" 
@@ -60,15 +60,34 @@
                         BorderBrush="#005A9E"
                         ToolTip="Нажмите для входа в систему"/>
 
-                <Border x:Name="errorBorder" Background="#FEF7F7" BorderBrush="#F4C7C3" 
-                       BorderThickness="1" Padding="10" Margin="0,15,0,0"
-                       CornerRadius="4" Visibility="Collapsed">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="⚠" FontSize="14" Margin="0,0,8,0" 
-                                  Foreground="#D83B01"/>
-                        <TextBlock x:Name="lblError" Foreground="#D83B01" FontSize="12" 
-                                  TextWrapping="Wrap" TextAlignment="Left"/>
-                    </StackPanel>
+                <Border x:Name="errorBorder" 
+                        Background="#FEF7F7" 
+                        BorderBrush="#F4C7C3" 
+                        BorderThickness="1" 
+                        Padding="10" 
+                        Margin="0,15,0,0"
+                        CornerRadius="4" 
+                        Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="⚠" 
+                                   FontSize="14" 
+                                   Margin="0,0,8,0" 
+                                   Foreground="#D83B01"
+                                   VerticalAlignment="Top"/>
+
+                        <TextBlock x:Name="lblError" 
+                                   Grid.Column="1"
+                                   Foreground="#D83B01" 
+                                   FontSize="12" 
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Left"/>
+                    </Grid>
                 </Border>
             </StackPanel>
         </Border>

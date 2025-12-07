@@ -373,7 +373,5 @@ namespace Golovin_Vibornov_422.Pages
                 ShowErrorMessage($"Не удалось открыть страницу авторизации: {ex.Message}", "Ошибка");
             }
         }
-
-
     }
 }

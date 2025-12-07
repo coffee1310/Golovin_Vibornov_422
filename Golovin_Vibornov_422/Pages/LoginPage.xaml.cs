@@ -1,5 +1,6 @@
 ﻿using Golovin_Vibornov_422.services;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,17 +29,17 @@ namespace Golovin_Vibornov_422.Pages
             string login = txtLogin.Text.Trim();
             string password = txtPassword.Password;
 
-            if (string.IsNullOrEmpty(login))
-            {
-                ShowError("Пожалуйста, введите логин");
-                txtLogin.Focus();
-                return;
-            }
+            HideError();
 
-            if (string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
             {
-                ShowError("Пожалуйста, введите пароль");
-                txtPassword.Focus();
+                ShowError("Пожалуйста, введите логин и пароль");
+
+                if (string.IsNullOrEmpty(login))
+                    txtLogin.Focus();
+                else
+                    txtPassword.Focus();
+
                 return;
             }
 
@@ -50,7 +51,7 @@ namespace Golovin_Vibornov_422.Pages
 
                 if (!success)
                 {
-                    ShowError("Неверный логин или пароль. Проверьте правильность введенных данных и попробуйте снова.");
+                    ShowError("Неверный логин или пароль. Проверьте правильность введенных данных.");
                     txtPassword.Password = "";
                     txtPassword.Focus();
                 }
@@ -97,13 +98,26 @@ namespace Golovin_Vibornov_422.Pages
 
         private void ShowError(string message)
         {
+            Debug.WriteLine($"Показать ошибку: {message}");
+
             lblError.Text = message;
             errorBorder.Visibility = Visibility.Visible;
+
+            errorBorder.InvalidateVisual();
+            errorBorder.UpdateLayout();
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                errorBorder.Visibility = Visibility.Visible;
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void HideError()
         {
             errorBorder.Visibility = Visibility.Collapsed;
+
+            errorBorder.InvalidateVisual();
+            errorBorder.UpdateLayout();
         }
 
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
@@ -144,7 +158,14 @@ namespace Golovin_Vibornov_422.Pages
         {
             if (e.Key == Key.Enter)
             {
+                if (string.IsNullOrEmpty(txtLogin.Text.Trim()))
+                {
+                    ShowError("Пожалуйста, введите логин");
+                    return;
+                }
+
                 txtPassword.Focus();
+                HideError();
             }
         }
 
@@ -152,6 +173,12 @@ namespace Golovin_Vibornov_422.Pages
         {
             if (e.Key == Key.Enter && !_isLoggingIn)
             {
+                if (string.IsNullOrEmpty(txtPassword.Password))
+                {
+                    ShowError("Пожалуйста, введите пароль");
+                    return;
+                }
+
                 LoginButton_Click(sender, e);
             }
         }
@@ -162,6 +189,14 @@ namespace Golovin_Vibornov_422.Pages
             {
                 NavigationService.GoBack();
             }
+        }
+
+        public void ClearFields()
+        {
+            txtLogin.Text = "";
+            txtPassword.Password = "";
+            HideError();
+            txtLogin.Focus();
         }
     }
 }

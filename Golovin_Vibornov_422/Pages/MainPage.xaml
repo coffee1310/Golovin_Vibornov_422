@@ -97,7 +97,6 @@
                     </ComboBox.Style>
                 </ComboBox>
 
-                <!-- Фильтр по категории -->
                 <ComboBox x:Name="cmbCategory" Grid.Column="2" 
                          SelectionChanged="Filter_SelectionChanged"
                          DisplayMemberPath="name"
@@ -130,7 +129,6 @@
                     </ComboBox.Style>
                 </ComboBox>
 
-                <!-- Фильтр по статусу -->
                 <ComboBox x:Name="cmbStatus" Grid.Column="4" 
                          SelectionChanged="Filter_SelectionChanged"
                          DisplayMemberPath="status1"
@@ -147,7 +145,6 @@
                     </ComboBox.Style>
                 </ComboBox>
 
-                <!-- Кнопка сброса фильтров -->
                 <Button Grid.Column="5" Content="🗑️ Сбросить" 
                         Click="ResetFilters_Click"
                         Margin="10,0,0,0"

@@ -52,23 +52,19 @@ namespace Golovin_Vibornov_422.Pages
 
             try
             {
-                // Загружаем завершенные объявления пользователя
                 var completedAds = await _context.ads_data
                     .Include(a => a.city)
                     .Include(a => a.category1)
                     .Include(a => a.type)
                     .Include(a => a.status)
-                    .Where(a => a.user_id == AuthService.CurrentUser.id && a.ad_status_id == 2) // Только завершенные
+                    .Where(a => a.user_id == AuthService.CurrentUser.id && a.ad_status_id == 2) 
                     .OrderByDescending(a => a.ad_post_date)
                     .ToListAsync();
 
-                // Рассчитываем общую прибыль как сумму всех завершенных объявлений
                 _totalProfit = completedAds.Sum(ad => ad.price);
 
-                // Создаем список для отображения
                 var adsWithDetails = completedAds.Select(ad => new
                 {
-                    // Основные свойства
                     ad.id,
                     ad.ad_title,
                     ad.ad_description,
@@ -81,20 +77,17 @@ namespace Golovin_Vibornov_422.Pages
                     ad.user_id,
                     ad.ad_image_path,
 
-                    // Связанные данные
                     City = ad.city,
                     Category = ad.category1,
                     AdType = ad.type,
                     AdStatus = ad.status,
 
-                    // Дополнительные свойства для UI
                     HasImage = !string.IsNullOrEmpty(ad.ad_image_path),
                     ImageSource = LoadImageFromPath(ad.ad_image_path),
-                    ProfitAmount = ad.price, // Прибыль от этого объявления равна его цене
-                    StatusColor = new SolidColorBrush(Color.FromRgb(40, 167, 69)) // Зеленый для завершенных
+                    ProfitAmount = ad.price,
+                    StatusColor = new SolidColorBrush(Color.FromRgb(40, 167, 69))
                 }).ToList();
 
-                // Обновляем UI
                 Dispatcher.Invoke(() =>
                 {
                     itemsCompletedAds.ItemsSource = adsWithDetails;

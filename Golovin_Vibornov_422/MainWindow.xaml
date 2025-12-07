@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Golovin_Vibornov_422"
         mc:Ignorable="d"
         Icon="/Images/Иконка.ico"
-        Height="550" Width="1000"
+        Height="600" Width="1000"
         Closing="Window_Closing">
     <Grid>
         <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>

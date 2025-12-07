@@ -23,7 +23,6 @@ namespace Golovin_Vibornov_422.Pages
         private string _selectedImagePath;
         private string _currentImagePath;
 
-        // Кэш для справочных данных
         private static System.Collections.Generic.List<city> _cachedCities;
         private static System.Collections.Generic.List<category> _cachedCategories;
         private static System.Collections.Generic.List<type> _cachedTypes;

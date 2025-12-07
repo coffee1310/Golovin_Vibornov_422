@@ -220,7 +220,6 @@
             </Grid>
         </ScrollViewer>
 
-        <!-- Панель действий -->
         <Border Grid.Row="2" Background="#F5F5F5" Padding="20" 
                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
