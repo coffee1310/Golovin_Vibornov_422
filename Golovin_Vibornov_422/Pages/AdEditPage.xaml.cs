@@ -14,6 +14,10 @@ using System.Windows.Media.Imaging;
 
 namespace Golovin_Vibornov_422.Pages
 {
+    /// <summary>
+    /// Логика страницы для управления услугами
+    /// </summary>
+    /// 
     public partial class AdEditPage : Page
     {
         private AdsDatabaseEntities _context;
@@ -29,6 +33,10 @@ namespace Golovin_Vibornov_422.Pages
         private static System.Collections.Generic.List<status> _cachedStatuses;
         private static DateTime _lastCacheTime = DateTime.MinValue;
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
+
+        private bool _imageRemoved = false;
+
+        private const int COMPLETED_STATUS_ID = 2; 
 
         public event Action AdSaved;
 
@@ -58,7 +66,8 @@ namespace Golovin_Vibornov_422.Pages
             {
                 user_id = AuthService.CurrentUser.id,
                 ad_post_date = DateTime.Today,
-                ad_status_id = 1 
+                ad_status_id = 1, 
+                profit = null 
             };
         }
 
@@ -107,6 +116,11 @@ namespace Golovin_Vibornov_422.Pages
                 if (!_isNew && !string.IsNullOrEmpty(_currentImagePath))
                 {
                     LoadImagePreview(_currentImagePath);
+                }
+
+                if (!_isNew && _ad.profit.HasValue)
+                {
+                    txtProfit.Text = _ad.profit.Value.ToString("F0");
                 }
 
                 HideLoadingState();
@@ -190,6 +204,11 @@ namespace Golovin_Vibornov_422.Pages
 
                 txtPrice.Text = _ad.price.ToString("F2");
 
+                if (_ad.profit.HasValue)
+                {
+                    txtProfit.Text = _ad.profit.Value.ToString("F0");
+                }
+
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     try
@@ -199,7 +218,7 @@ namespace Golovin_Vibornov_422.Pages
                         SetComboBoxValueSafely(cmbType, _ad.ad_type_id);
                         SetComboBoxValueSafely(cmbStatus, _ad.ad_status_id);
 
-                        CheckStatusForProfitPanel();
+                        UpdateProfitPanelVisibility();
                     }
                     catch (Exception ex)
                     {
@@ -268,10 +287,11 @@ namespace Golovin_Vibornov_422.Pages
         private void RemoveImageButton_Click(object sender, RoutedEventArgs e)
         {
             _selectedImagePath = null;
-            _currentImagePath = null;
+            _imageRemoved = true;
             imgPreview.Source = new BitmapImage(new Uri("pack://application:,,,/Images/no-image.jpg"));
             lblImageInfo.Text = "Изображение не выбрано";
         }
+
 
         private void LoadImagePreview(string imagePath)
         {
@@ -442,36 +462,41 @@ namespace Golovin_Vibornov_422.Pages
             return null;
         }
 
-        private void CheckStatusForProfitPanel()
+        private void cmbStatus_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            try
+            if (_isLoading) return;
+
+            UpdateProfitPanelVisibility();
+
+            if (cmbStatus.SelectedItem is status selectedStatus && selectedStatus.id == COMPLETED_STATUS_ID)
             {
-                if (_ad.ad_status_id == 2)
+                if (string.IsNullOrEmpty(txtProfit.Text) && decimal.TryParse(txtPrice.Text, out decimal price))
                 {
-                    profitPanel.Visibility = Visibility.Visible;
+                    txtProfit.Text = ((int)price).ToString();
                 }
-                else
+
+                Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    profitPanel.Visibility = Visibility.Collapsed;
-                }
+                    txtProfit.Focus();
+                    txtProfit.SelectAll();
+                }), System.Windows.Threading.DispatcherPriority.Background);
             }
-            catch (Exception ex)
+            else if (cmbStatus.SelectedItem is status newStatus && newStatus.id != COMPLETED_STATUS_ID)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка проверки статуса: {ex.Message}");
+                if (!string.IsNullOrEmpty(txtProfit.Text) && int.TryParse(txtProfit.Text, out int profit) && profit > 0)
+                {
+                    txtPrice.Text = profit.ToString("F2");
+                }
             }
         }
 
-        private void cmbStatus_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void UpdateProfitPanelVisibility()
         {
-            if (!_isLoading && cmbStatus.SelectedItem is status selectedStatus)
+            if (cmbStatus.SelectedItem is status selectedStatus)
             {
-                if (selectedStatus.id == 2)
+                if (selectedStatus.id == COMPLETED_STATUS_ID)
                 {
                     profitPanel.Visibility = Visibility.Visible;
-                    if (string.IsNullOrEmpty(txtProfit.Text) && _ad.price > 0)
-                    {
-                        txtProfit.Text = ((int)_ad.price).ToString();
-                    }
                 }
                 else
                 {
@@ -497,7 +522,33 @@ namespace Golovin_Vibornov_422.Pages
                 _ad.category = GetSelectedId(cmbCategory);
                 _ad.ad_type_id = GetSelectedId(cmbType);
                 _ad.ad_status_id = GetSelectedId(cmbStatus);
-                _ad.price = decimal.Parse(txtPrice.Text);
+
+                if (cmbStatus.SelectedItem is status selectedStatus && selectedStatus.id == COMPLETED_STATUS_ID)
+                {
+                    _ad.price = decimal.Parse(txtPrice.Text);
+
+                    if (int.TryParse(txtProfit.Text, out int profitAmount) && profitAmount >= 0)
+                    {
+                        _ad.profit = profitAmount;
+                    }
+                    else
+                    {
+                        _ad.profit = null;
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(txtProfit.Text) && int.TryParse(txtProfit.Text, out int profitFromField) && profitFromField > 0)
+                    {
+                        _ad.price = profitFromField;
+                    }
+                    else
+                    {
+                        _ad.price = decimal.Parse(txtPrice.Text);
+                    }
+
+                    _ad.profit = null;
+                }
 
                 if (!string.IsNullOrEmpty(_selectedImagePath))
                 {
@@ -511,21 +562,25 @@ namespace Golovin_Vibornov_422.Pages
                     {
                         _ad.ad_image_path = savedImagePath;
                     }
+                    _imageRemoved = false; 
                 }
-                else if (_selectedImagePath == null && !string.IsNullOrEmpty(_currentImagePath))
+                else if (_imageRemoved)
                 {
-                    DeleteOldImage(_currentImagePath);
+                    if (!string.IsNullOrEmpty(_currentImagePath))
+                    {
+                        DeleteOldImage(_currentImagePath);
+                    }
                     _ad.ad_image_path = null;
-                }
-
-                if (_ad.ad_status_id == 2 && !string.IsNullOrEmpty(txtProfit.Text))
-                {
-                    await ProcessProfit();
+                    _imageRemoved = false; 
                 }
 
                 if (_isNew)
                 {
                     _context.ads_data.Add(_ad);
+                }
+                else
+                {
+                    _context.Entry(_ad).State = EntityState.Modified;
                 }
 
                 await _context.SaveChangesAsync();
@@ -561,37 +616,6 @@ namespace Golovin_Vibornov_422.Pages
             }
         }
 
-        private async Task ProcessProfit()
-        {
-            if (int.TryParse(txtProfit.Text, out int profitAmount) && profitAmount >= 0)
-            {
-                try
-                {
-                    var profit = await _context.profit
-                        .FirstOrDefaultAsync(p => p.user_id == AuthService.CurrentUser.id);
-
-                    if (profit != null)
-                    {
-                        profit.profit1 += profitAmount;
-                        _context.Entry(profit).State = EntityState.Modified;
-                    }
-                    else
-                    {
-                        profit = new profit
-                        {
-                            user_id = AuthService.CurrentUser.id,
-                            profit1 = profitAmount
-                        };
-                        _context.profit.Add(profit);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Ошибка обработки прибыли: {ex.Message}");
-                }
-            }
-        }
-
         private int GetSelectedId(ComboBox comboBox)
         {
             return comboBox.SelectedValue != null ? (int)comboBox.SelectedValue : 0;
@@ -612,61 +636,54 @@ namespace Golovin_Vibornov_422.Pages
 
             if (string.IsNullOrWhiteSpace(txtTitle.Text))
             {
-                ShowError("Заголовок объявления является обязательным полем. Пожалуйста, введите заголовок.");
+                ShowError("Заголовок объявления является обязательным полем.");
                 txtTitle.Focus();
                 return false;
             }
 
             if (dpDate.SelectedDate == null)
             {
-                ShowError("Дата публикации является обязательным полем. Пожалуйста, выберите дату.");
+                ShowError("Дата публикации является обязательным полем.");
                 dpDate.Focus();
                 return false;
             }
 
             if (dpDate.SelectedDate > DateTime.Today)
             {
-                ShowError("Дата публикации не может быть в будущем. Пожалуйста, выберите корректную дату.");
+                ShowError("Дата публикации не может быть в будущем.");
                 dpDate.Focus();
                 return false;
             }
 
             if (cmbCity.SelectedItem == null)
             {
-                ShowError("Город является обязательным полем. Пожалуйста, выберите город из списка.");
+                ShowError("Город является обязательным полем.");
                 cmbCity.Focus();
                 return false;
             }
 
             if (cmbCategory.SelectedItem == null)
             {
-                ShowError("Категория является обязательным полем. Пожалуйста, выберите категорию из списка.");
+                ShowError("Категория является обязательным полем.");
                 cmbCategory.Focus();
                 return false;
             }
 
             if (cmbType.SelectedItem == null)
             {
-                ShowError("Тип объявления является обязательным полем. Пожалуйста, выберите тип из списка.");
+                ShowError("Тип объявления является обязательным полем.");
                 cmbType.Focus();
                 return false;
             }
 
             if (cmbStatus.SelectedItem == null)
             {
-                ShowError("Статус является обязательным полем. Пожалуйста, выберите статус из списка.");
+                ShowError("Статус является обязательным полем.");
                 cmbStatus.Focus();
                 return false;
             }
 
-            if (!decimal.TryParse(txtPrice.Text, out decimal price) || price < 0)
-            {
-                ShowError("Цена должна быть положительным числом. Пожалуйста, введите корректное значение цены.");
-                txtPrice.Focus();
-                return false;
-            }
-
-            if (cmbStatus.SelectedItem is status status && status.id == 2)
+            if (cmbStatus.SelectedItem is status selectedStatus && selectedStatus.id == COMPLETED_STATUS_ID)
             {
                 if (string.IsNullOrWhiteSpace(txtProfit.Text))
                 {
@@ -677,8 +694,39 @@ namespace Golovin_Vibornov_422.Pages
 
                 if (!int.TryParse(txtProfit.Text, out int profit) || profit < 0)
                 {
-                    ShowError("Полученная сумма должна быть целым неотрицательным числом. Пожалуйста, введите корректное значение.");
+                    ShowError("Прибыль должна быть целым неотрицательным числом.");
                     txtProfit.Focus();
+                    return false;
+                }
+
+                if (profit == 0)
+                {
+                    var result = MessageBox.Show(
+                        "Вы указали нулевую прибыль. Вы уверены?",
+                        "Подтверждение",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.No)
+                    {
+                        txtProfit.Focus();
+                        return false;
+                    }
+                }
+
+                if (!decimal.TryParse(txtPrice.Text, out decimal price) || price < 0)
+                {
+                    ShowError("Цена должна быть положительным числом.");
+                    txtPrice.Focus();
+                    return false;
+                }
+            }
+            else
+            {
+                if (!decimal.TryParse(txtPrice.Text, out decimal price) || price < 0)
+                {
+                    ShowError("Цена должна быть положительным числом.");
+                    txtPrice.Focus();
                     return false;
                 }
             }
@@ -743,6 +791,22 @@ namespace Golovin_Vibornov_422.Pages
                    (cmbStatus.SelectedValue != null && (int)cmbStatus.SelectedValue != _ad.ad_status_id) ||
                    (decimal.TryParse(txtPrice.Text, out decimal currentPrice) && currentPrice != _ad.price);
 
+            if (_ad.profit.HasValue)
+            {
+                if (int.TryParse(txtProfit.Text, out int currentProfit))
+                {
+                    hasChanges = hasChanges || currentProfit != _ad.profit.Value;
+                }
+                else
+                {
+                    hasChanges = hasChanges || !string.IsNullOrEmpty(txtProfit.Text);
+                }
+            }
+            else
+            {
+                hasChanges = hasChanges || !string.IsNullOrEmpty(txtProfit.Text);
+            }
+
             bool imageChanged = _selectedImagePath != null ||
                                (_selectedImagePath == null && !string.IsNullOrEmpty(_currentImagePath));
 
@@ -793,6 +857,14 @@ namespace Golovin_Vibornov_422.Pages
                     e.Handled = true;
                     return;
                 }
+            }
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_isNew)
+            {
+                txtTitle.Focus();
             }
         }
 

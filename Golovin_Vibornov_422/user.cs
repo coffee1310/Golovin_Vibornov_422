@@ -26,6 +26,5 @@ namespace Golovin_Vibornov_422
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ads_data> ads_data { get; set; }
-        public virtual profit profit { get; set; }
     }
 }

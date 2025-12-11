@@ -6,7 +6,8 @@
       xmlns:local="clr-namespace:Golovin_Vibornov_422.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1000"
-      Title="Завершенные объявления">
+      Title="Завершенные объявления"
+      Loaded="Page_Loaded">
 
     <Grid Background="White">
         <Grid.RowDefinitions>
@@ -49,6 +50,11 @@
                         Background="#28a745" Foreground="White" BorderThickness="0"
                         Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
                         ToolTip="Обновить данные"/>
+                <Button Content="📊 Управление" Click="ManageAdsButton_Click" 
+                        Background="#0078D4" Foreground="White" BorderThickness="0"
+                        Padding="12,6" Cursor="Hand" FontSize="12" FontWeight="SemiBold"
+                        Margin="10,0,0,0"
+                        ToolTip="Перейти к управлению объявлениями"/>
             </StackPanel>
         </Border>
 
@@ -80,12 +86,13 @@
                         <DataTemplate>
                             <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="1"
                                     CornerRadius="8" Margin="8" Padding="0" 
-                                    Width="320" Height="420">
+                                    Width="320" Height="450">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="180"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
@@ -142,9 +149,11 @@
 
                                             <StackPanel Grid.Column="1" Orientation="Vertical" 
                                                        HorizontalAlignment="Right">
-                                                <TextBlock Text="{Binding price, StringFormat={}{0}₽}" 
-                                                          FontSize="14" FontWeight="Bold" 
-                                                          Foreground="#0078D4"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Цена:" FontSize="10" Foreground="#999999" Margin="0,0,5,0"/>
+                                                    <TextBlock Text="{Binding price, StringFormat={}{0}₽}" 
+                                                              FontSize="11" FontWeight="SemiBold" Foreground="#666666"/>
+                                                </StackPanel>
                                                 <TextBlock Text="{Binding ad_post_date, StringFormat=dd.MM.yyyy}" 
                                                           FontSize="9" Foreground="#999999"/>
                                             </StackPanel>
@@ -162,12 +171,20 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Grid.Row="5" Background="#28a745" 
-                                           CornerRadius="0,0,8,8" Padding="5,2">
+                                    <Border Grid.Row="5" Background="#D4EDDA" 
+                                           Padding="5,3">
                                         <TextBlock Text="{Binding AdStatus.status1}" 
                                                   FontSize="10" FontWeight="Bold" 
-                                                  Foreground="White" 
+                                                  Foreground="#155724" 
                                                   HorizontalAlignment="Center"/>
+                                    </Border>
+
+                                    <Border Grid.Row="6" Background="#F5F5F5" 
+                                           CornerRadius="0,0,8,8" Padding="8">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="📊" FontSize="10" Margin="0,0,5,0"/>
+                                            <TextBlock Text="Завершено" FontSize="10" FontWeight="SemiBold" Foreground="#666666"/>
+                                        </StackPanel>
                                     </Border>
                                 </Grid>
                             </Border>
@@ -188,6 +205,11 @@
                                   FontSize="12" Foreground="#666666" 
                                   TextAlignment="Center" HorizontalAlignment="Center"
                                   Margin="0,0,0,15"/>
+                        <Button Content="📊 Перейти к управлению" 
+                                Click="ManageAdsButton_Click"
+                                Background="#0078D4" Foreground="White"
+                                Padding="15,8" BorderThickness="0" 
+                                FontSize="12" FontWeight="SemiBold" Cursor="Hand"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -203,7 +225,10 @@
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock x:Name="lblProfitInfo" Text="Общая прибыль: 0₽" FontSize="11" Foreground="#28a745" FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="💰" FontSize="11" Margin="0,0,5,0" Foreground="#28a745"/>
+                    <TextBlock x:Name="lblProfitInfo" Text="Общая прибыль: 0₽" FontSize="11" Foreground="#28a745" FontWeight="SemiBold"/>
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>

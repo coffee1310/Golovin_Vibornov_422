@@ -25,6 +25,7 @@ namespace Golovin_Vibornov_422
         public int ad_status_id { get; set; }
         public decimal price { get; set; }
         public string ad_image_path { get; set; }
+        public Nullable<decimal> profit { get; set; }
     
         public virtual status status { get; set; }
         public virtual type type { get; set; }

@@ -1,23 +1,19 @@
 ﻿using Golovin_Vibornov_422.services;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Golovin_Vibornov_422.Pages
 {
+    /// <summary>
+    /// Логика страницы для отображения завершенных услуг
+    /// </summary>
     public partial class CompletedAdsPage : Page
     {
         private AdsDatabaseEntities _context;
@@ -57,11 +53,13 @@ namespace Golovin_Vibornov_422.Pages
                     .Include(a => a.category1)
                     .Include(a => a.type)
                     .Include(a => a.status)
-                    .Where(a => a.user_id == AuthService.CurrentUser.id && a.ad_status_id == 2) 
+                    .Where(a => a.user_id == AuthService.CurrentUser.id && a.ad_status_id == 2)
                     .OrderByDescending(a => a.ad_post_date)
                     .ToListAsync();
 
-                _totalProfit = completedAds.Sum(ad => ad.price);
+                _totalProfit = completedAds
+                    .Where(ad => ad.profit.HasValue)
+                    .Sum(ad => ad.profit.Value);
 
                 var adsWithDetails = completedAds.Select(ad => new
                 {
@@ -74,6 +72,7 @@ namespace Golovin_Vibornov_422.Pages
                     ad.ad_type_id,
                     ad.ad_status_id,
                     ad.price,
+                    ad.profit, 
                     ad.user_id,
                     ad.ad_image_path,
 
@@ -84,7 +83,9 @@ namespace Golovin_Vibornov_422.Pages
 
                     HasImage = !string.IsNullOrEmpty(ad.ad_image_path),
                     ImageSource = LoadImageFromPath(ad.ad_image_path),
-                    ProfitAmount = ad.price,
+
+                    ProfitAmount = ad.profit.HasValue ? ad.profit.Value : ad.price, 
+
                     StatusColor = new SolidColorBrush(Color.FromRgb(40, 167, 69))
                 }).ToList();
 
@@ -234,8 +235,10 @@ namespace Golovin_Vibornov_422.Pages
         private void UpdateUIState(int adsCount, decimal totalProfit)
         {
             lblCount.Text = $"Завершенных объявлений: {adsCount}";
-            lblTotalProfit.Text = $"Общая прибыль: {totalProfit}₽";
-            lblProfitInfo.Text = $"Общая прибыль: {totalProfit}₽";
+
+            string formattedProfit = totalProfit.ToString("N0");
+            lblTotalProfit.Text = $"Общая прибыль: {formattedProfit}₽";
+            lblProfitInfo.Text = $"Общая прибыль: {formattedProfit}₽";
 
             emptyStatePanel.Visibility = adsCount == 0 ? Visibility.Visible : Visibility.Collapsed;
             itemsCompletedAds.Visibility = adsCount > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -290,5 +293,9 @@ namespace Golovin_Vibornov_422.Pages
             lblStatus.Text = "Произошла ошибка";
         }
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadCompletedAds();
+        }
     }
 }

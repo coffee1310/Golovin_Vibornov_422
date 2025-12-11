@@ -10,6 +10,9 @@ using System.IO;
 
 namespace Golovin_Vibornov_422.Pages
 {
+    /// <summary>
+    /// Логика главной страницы
+    /// </summary>
     public partial class MainPage : Page
     {
         private AdsDatabaseEntities _context;

@@ -11,6 +11,9 @@ using System.IO;
 
 namespace Golovin_Vibornov_422.Pages
 {
+    /// <summary>
+    /// Логика страницы для отображения услуг
+    /// </summary>
     public partial class AdsManagementPage : Page
     {
         private AdsDatabaseEntities _context;
@@ -20,6 +23,8 @@ namespace Golovin_Vibornov_422.Pages
         {
             InitializeComponent();
             InitializePage();
+
+            this.Loaded += (s, e) => LoadAds();
         }
 
         private void CompletedAdsButton_Click(object sender, RoutedEventArgs e)
@@ -62,6 +67,12 @@ namespace Golovin_Vibornov_422.Pages
 
             try
             {
+                if (_context != null)
+                {
+                    _context.Dispose();
+                }
+                _context = new AdsDatabaseEntities();
+
                 var userAds = await _context.ads_data
                     .Include(a => a.city)
                     .Include(a => a.category1)
@@ -445,11 +456,6 @@ namespace Golovin_Vibornov_422.Pages
         {
             MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
             lblStatus.Text = "Произошла ошибка";
-        }
-
-        private void ShowInfoMessage(string message, string title = "Информация")
-        {
-            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void ShowSuccessMessage(string message)

@@ -10,7 +10,7 @@ using System.Windows.Media;
 namespace Golovin_Vibornov_422.Pages
 {
     /// <summary>
-    /// Логика взаимодействия для LoginPage.xaml
+    /// Логика взаимодействия для страницы авторизации пользователей
     /// </summary>
     public partial class LoginPage : Page
     {

@@ -8,7 +8,7 @@ using System.Windows.Navigation;
 namespace Golovin_Vibornov_422
 {
     /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
+    /// Логика взаимодействия для окна MainWindow. В нем происходит основное отображение информации
     /// </summary>
     public partial class MainWindow : Window
     {
